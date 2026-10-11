@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm form-card">
+  <div class="card-body p-4">
+    <h1 class="h3 mb-2">{{ titulo }}</h1>
+    <p class="text-body-secondary small">
+      Los campos con <span aria-hidden="true">*</span><span class="visually-hidden">asterisco</span> son obligatorios.
+    </p>
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger" role="alert">
+      {% for error in form.non_field_errors %}<p class="mb-0">{{ error }}</p>{% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+        {% include "_campo.html" with field=field %}
+      {% endfor %}
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a class="btn btn-outline-secondary" href="{{ view.success_url }}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+:root {
+  --agro: #1b5e20;
+  --agro-oscuro: #144a19;
+  --bs-link-color: var(--agro);
+  --bs-link-hover-color: var(--agro-oscuro);
+}
+
+.bg-agro { background-color: var(--agro) !important; }
+.text-agro { color: var(--agro) !important; }
+
+.btn-primary {
+  --bs-btn-bg: var(--agro);
+  --bs-btn-border-color: var(--agro);
+  --bs-btn-hover-bg: var(--agro-oscuro);
+  --bs-btn-hover-border-color: var(--agro-oscuro);
+  --bs-btn-active-bg: var(--agro-oscuro);
+  --bs-btn-active-border-color: var(--agro-oscuro);
+  --bs-btn-disabled-bg: var(--agro);
+  --bs-btn-disabled-border-color: var(--agro);
+}
+
+.page-link { --bs-pagination-color: var(--agro); }
+.page-item.active .page-link {
+  background-color: var(--agro);
+  border-color: var(--agro);
+}
+
+.form-card { max-width: 600px; margin-inline: auto; }
+
+.skip-link {
+  position: absolute;
+  left: .5rem;
+  top: -4rem;
+  z-index: 2000;
+  padding: .6rem 1rem;
+  background: #fff;
+  border-radius: .5rem;
+}
+.skip-link:focus { top: .5rem; }

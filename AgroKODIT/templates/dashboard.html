@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Inicio{% endblock %}
+
+{% block content %}
+<h1 class="h2 mb-4">Panel de control</h1>
+
+<ul class="row g-3 list-unstyled mb-4">
+  <li class="col-12 col-md-4">
+    <div class="card h-100 text-center shadow-sm">
+      <div class="card-body">
+        <p class="display-5 fw-bold text-agro mb-0">{{ total_predios }}</p>
+        <p class="mb-0">predios</p>
+      </div>
+    </div>
+  </li>
+  <li class="col-12 col-md-4">
+    <div class="card h-100 text-center shadow-sm">
+      <div class="card-body">
+        <p class="display-5 fw-bold text-agro mb-0">{{ total_cuarteles }}</p>
+        <p class="mb-0">cuarteles</p>
+      </div>
+    </div>
+  </li>
+  <li class="col-12 col-md-4">
+    <div class="card h-100 text-center shadow-sm">
+      <div class="card-body">
+        <p class="display-5 fw-bold text-agro mb-0">{{ total_lecturas }}</p>
+        <p class="mb-0">lecturas registradas</p>
+      </div>
+    </div>
+  </li>
+</ul>
+
+<section class="card shadow-sm" aria-labelledby="ultimas">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <h2 id="ultimas" class="h4 mb-0">Últimas lecturas</h2>
+      {% if perms.gestor.add_lecturasensor %}
+      <a class="btn btn-primary" href="{% url 'lectura_create' %}">Registrar lectura</a>
+      {% endif %}
+    </div>
+
+    {% if ultimas_lecturas %}
+    <div class="table-responsive">
+      <table class="table table-striped table-hover align-middle mb-0">
+        <caption class="visually-hidden">Las cinco lecturas de sensores más recientes</caption>
+        <thead>
+          <tr>
+            <th scope="col">Fecha</th>
+            <th scope="col">Predio</th>
+            <th scope="col">Cuartel</th>
+            <th scope="col">Humedad</th>
+            <th scope="col">Temp.</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in ultimas_lecturas %}
+          <tr>
+            <td>{{ l.fecha|date:"d/m/Y H:i" }}</td>
+            <td>{{ l.cuartel.predio.nombre }}</td>
+            <td>{{ l.cuartel }}</td>
+            <td>{{ l.telemetria_dinamica.humedad_suelo|default:"—" }}%</td>
+            <td>{{ l.telemetria_dinamica.temperatura|default:"—" }} °C</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="mb-0">Todavía no hay lecturas registradas.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

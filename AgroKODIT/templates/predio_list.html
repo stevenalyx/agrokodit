@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Predios{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h2 mb-0">Predios</h1>
+  {% if perms.gestor.add_predio %}
+  <a class="btn btn-primary" href="{% url 'predio_create' %}">Nuevo predio</a>
+  {% endif %}
+</div>
+
+{% if object_list %}
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-striped table-hover align-middle mb-0">
+      <caption class="visually-hidden">Listado de predios</caption>
+      <thead>
+        <tr>
+          <th scope="col">Nombre</th>
+          <th scope="col">Ubicación</th>
+          <th scope="col">Superficie (ha)</th>
+          <th scope="col">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in object_list %}
+        <tr>
+          <th scope="row"><a href="{% url 'predio_detail' p.pk %}">{{ p.nombre }}</a></th>
+          <td>{{ p.ubicacion }}</td>
+          <td>{{ p.superficie_hectareas }}</td>
+          <td>
+            <div class="d-flex gap-2">
+              {% if perms.gestor.change_predio %}
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'predio_update' p.pk %}">Editar<span class="visually-hidden"> {{ p.nombre }}</span></a>
+              {% endif %}
+              {% if perms.gestor.delete_predio %}
+              <a class="btn btn-sm btn-outline-danger" href="{% url 'predio_delete' p.pk %}">Eliminar<span class="visually-hidden"> {{ p.nombre }}</span></a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% include "_paginacion.html" %}
+{% else %}
+<div class="alert alert-info">Aún no hay predios registrados.</div>
+{% endif %}
+{% endblock %}

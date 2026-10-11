@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Inicio{% endblock %} · AgroKODIT</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{% static 'css/agrokodit.css' %}">
+</head>
+<body class="d-flex flex-column min-vh-100 bg-body-tertiary">
+  <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-agro" aria-label="Navegación principal">
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="{% url 'dashboard' %}">AgroKODIT</a>
+
+        {% if user.is_authenticated %}
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#menu" aria-controls="menu" aria-expanded="false"
+                aria-label="Abrir o cerrar el menú de navegación">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="menu">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link{% if request.resolver_match.url_name == 'dashboard' %} active{% endif %}"
+                 {% if request.resolver_match.url_name == 'dashboard' %}aria-current="page"{% endif %}
+                 href="{% url 'dashboard' %}">Inicio</a>
+            </li>
+            {% if perms.gestor.view_predio %}
+            <li class="nav-item">
+              <a class="nav-link{% if 'predio' in request.resolver_match.url_name %} active{% endif %}"
+                 {% if 'predio' in request.resolver_match.url_name %}aria-current="page"{% endif %}
+                 href="{% url 'predio_list' %}">Predios</a>
+            </li>
+            {% endif %}
+            {% if perms.gestor.view_lecturasensor %}
+            <li class="nav-item">
+              <a class="nav-link{% if 'lectura' in request.resolver_match.url_name %} active{% endif %}"
+                 {% if 'lectura' in request.resolver_match.url_name %}aria-current="page"{% endif %}
+                 href="{% url 'lectura_list' %}">Lecturas</a>
+            </li>
+            {% endif %}
+            {% if user.is_staff %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'admin:index' %}">Administración</a>
+            </li>
+            {% endif %}
+          </ul>
+
+          <div class="d-flex align-items-center gap-3 text-white">
+            <span>{{ user.get_full_name|default:user.username }}</span>
+            <form method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </nav>
+  </header>
+
+
+  <main id="contenido" tabindex="-1" class="container py-4">
+    {% if messages %}
+    <div aria-live="polite">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="status">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="mt-auto py-3 text-center text-body-secondary small">
+    AgroKODIT · Proyecto Integrado API 3 · INACAP
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
