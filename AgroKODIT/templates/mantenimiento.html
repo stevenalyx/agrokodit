@@ -1,4 +1,16 @@
-{%load static}
+{% extends "base.html" %}
 
-<!-- insertar web -->
+{% block content %}
 
+# Pagina de mantenimiento
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+      <h1 class="display-4">¡Estamos en mantenimiento!</h1>
+      <p class="lead">Actualmente estamos realizando mejoras en nuestro sitio web. Por favor, vuelve más tarde.</p>
+      <img src="{% static 'images/maintenance.png' %}" alt="Mantenimiento" class="img-fluid mt-4">
+    </div>
+  </div>
+</div>
+
+{% endblock %}

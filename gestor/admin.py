@@ -1,5 +1,4 @@
 from django.contrib import admin
-
 from .models import Cuartel, LecturaSensor, Predio
 
 # Mensajes (textos) que se muestran en la interfaz de administración para cada modelo.

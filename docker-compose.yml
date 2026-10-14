@@ -18,4 +18,4 @@ services:
       retries: 10
 
 volumes:
-  agrokodit_data:
+  agrokodit_data: 
