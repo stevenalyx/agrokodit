@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
@@ -9,14 +10,30 @@ from .forms import CuartelForm, LecturaSensorForm, PredioForm
 from .models import Cuartel, LecturaSensor, Predio
 
 
+class AvisoAlertaMixin:
+    # muestra el aviso de éxito (sucess_message) después de eliminar un registro
+    success_message = ""
+
+    def delete(self, request, *args, **kwargs):
+        response = super().delete(request, *args, **kwargs)
+        if self.success_message:
+            messages.success(self.request, self.success_message)
+        return response
+
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "dashboard.html"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["total_predios"] = Predio.objects.count()
-        ctx["total_cuarteles"] = Cuartel.objects.count()
-        ctx["total_lecturas"] = LecturaSensor.objects.count()
+        usuario=self.request.user
+        ver_predios = usuario.has_perm("gestor.view_predio")
+        ver_cuarteles = usuario.has_perm("gestor.view_cuartel")
+        ver_lecturas = usuario.has_perm("gestor.view_lecturasensor")
+
+        ctx["total_predios"] = Predio.objects.count() if ver_predios else None
+        ctx["total_cuarteles"] = Cuartel.objects.count() if ver_cuarteles else None
+        ctx["total_lecturas"] = LecturaSensor.objects.count() if ver_lecturas else None
+
         ctx["ultimas_lecturas"] = (
             LecturaSensor.objects.select_related("cuartel__predio")
             .order_by("-fecha")[:5]
@@ -61,7 +78,7 @@ class PredioUpdateView(LoginRequiredMixin, PermissionRequiredMixin,
 
 
 class PredioDeleteView(LoginRequiredMixin, PermissionRequiredMixin,
-                       SuccessMessageMixin, DeleteView):
+                       AvisoAlertaMixin, DeleteView):
     model = Predio
     permission_required = "gestor.delete_predio"
     template_name = "confirm_delete.html"
@@ -99,7 +116,7 @@ class CuartelUpdateView(LoginRequiredMixin, PermissionRequiredMixin,
 
 
 class CuartelDeleteView(LoginRequiredMixin, PermissionRequiredMixin,
-                        SuccessMessageMixin, DeleteView):
+                        AvisoAlertaMixin, DeleteView):
     model = Cuartel
     permission_required = "gestor.delete_cuartel"
     template_name = "confirm_delete.html"
@@ -114,21 +131,28 @@ class LecturaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     paginate_by = 15
     template_name = "lectura_list.html"
 
+    def _cuartel_filtrado(self):
+        valor = self.request.GET.get("cuartel", "")
+        return valor if valor.isdigit() else ""
+
     def get_queryset(self):
-        qs = LecturaSensor.objects.select_related("cuartel__predio").order_by("-fecha")
-        if cuartel := self.request.GET.get("cuartel"):
-            qs = qs.filter(cuartel_id=cuartel)
-        return qs
+        queryset = LecturaSensor.objects.select_related("cuartel__predio").order_by("-fecha")
+        if cuartel_id := self._cuartel_filtrado():
+            queryset = queryset.filter(cuartel_id=cuartel_id)
+        return queryset
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        cuartel = self._cuartel_filtrado()
         ctx["cuarteles"] = Cuartel.objects.select_related("predio")
-        ctx["cuartel_sel"] = self.request.GET.get("cuartel", "")
+        ctx["cuartel_sel"] = cuartel
+        ctx["extra_query"] = f"&cuartel={cuartel}" if cuartel else ""
         return ctx
 
 
 class LecturaCreateView(LoginRequiredMixin, PermissionRequiredMixin,
                         SuccessMessageMixin, CreateView):
+    
     model = LecturaSensor
     form_class = LecturaSensorForm
     permission_required = "gestor.add_lecturasensor"

@@ -5,7 +5,6 @@ from .models import Cuartel, LecturaSensor, Predio
 
 
 class BootstrapAccesibleMixin:
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for name, field in self.fields.items():
@@ -29,7 +28,10 @@ class BootstrapAccesibleMixin:
 
 
 class LoginForm(BootstrapAccesibleMixin, AuthenticationForm):
-    pass
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["username"].label = "Ingresa tú nombre de usuario"
+        self.fields["password"].label = "Ingresa tú contraseña"
 
 
 class PredioForm(BootstrapAccesibleMixin, forms.ModelForm):
@@ -46,21 +48,29 @@ class PredioForm(BootstrapAccesibleMixin, forms.ModelForm):
 class CuartelForm(BootstrapAccesibleMixin, forms.ModelForm):
     class Meta:
         model = Cuartel
-        fields = "__all__"
+        fields = ["predio", "nombre"]
+        labels = {
+            'predio': "Predio al que pertenece",
+            'nombre': "Nombre del cuartel",
+        }
 
 
 class LecturaSensorForm(BootstrapAccesibleMixin, forms.ModelForm):
+    
     humedad_suelo = forms.FloatField(
         label="Humedad del suelo (%)", min_value=0, max_value=100,
         help_text="Valor entre 0 y 100.",
     )
+    
     temperatura = forms.FloatField(
         label="Temperatura (°C)", min_value=-30, max_value=70,
     )
+    
     ph = forms.FloatField(
         label="pH del suelo", min_value=0, max_value=14,
         help_text="Escala de 0 a 14.",
     )
+    
     bateria = forms.IntegerField(
         label="Nivel de batería del sensor (%)", min_value=0, max_value=100,
     )
@@ -68,6 +78,7 @@ class LecturaSensorForm(BootstrapAccesibleMixin, forms.ModelForm):
     class Meta:
         model = LecturaSensor
         fields = ["cuartel"]
+        labels = {"cuartel": "Cuartel"}
 
     def save(self, commit=True):
         self.instance.telemetria_dinamica = {

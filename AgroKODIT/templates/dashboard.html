@@ -4,7 +4,14 @@
 {% block content %}
 <h1 class="h2 mb-4">Panel de control</h1>
 
+{% if total_predios is None and total_cuarteles is None and total_lecturas is None %}
+<div class="alert alert-info" role="status">
+  Tu cuenta todavía no tiene permisos para ver información del sistema. Pide a un administrador que te asigne un rol.
+</div>
+{% endif %}
+
 <ul class="row g-3 list-unstyled mb-4">
+  {% if total_predios is not None %}
   <li class="col-12 col-md-4">
     <div class="card h-100 text-center shadow-sm">
       <div class="card-body">
@@ -13,6 +20,8 @@
       </div>
     </div>
   </li>
+  {% endif %}
+  {% if total_cuarteles is not None %}
   <li class="col-12 col-md-4">
     <div class="card h-100 text-center shadow-sm">
       <div class="card-body">
@@ -21,6 +30,8 @@
       </div>
     </div>
   </li>
+  {% endif %}
+  {% if total_lecturas is not None %}
   <li class="col-12 col-md-4">
     <div class="card h-100 text-center shadow-sm">
       <div class="card-body">
@@ -29,8 +40,10 @@
       </div>
     </div>
   </li>
+  {% endif %}
 </ul>
 
+{% if ultimas_lecturas is not None %}
 <section class="card shadow-sm" aria-labelledby="ultimas">
   <div class="card-body">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -71,4 +84,5 @@
     {% endif %}
   </div>
 </section>
+{% endif %}
 {% endblock %}

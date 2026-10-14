@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Error{% endblock %}
+
+{% block content %}
+<div class="alert alert-danger" role="alert">
+  <h1 class="h3 mb-3">Error, inténtalo de nuevo</h1>
+  <p class="mb-0">{{ exception }}</p>
+
+{% if request.META.HTTP_REFERER %}
+  <p class="mb-0">Puedes volver a la página anterior haciendo <a href="{{ request.META.HTTP_REFERER }}">clic aquí</a>.</p>
+  {% endif %}
+</div>
+{% endblock %}
