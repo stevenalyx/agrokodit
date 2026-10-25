@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Panel de jefe de cuadrilla{% endblock %}
+
+{% block content %}
+<h1 class="h2 mb-1">Panel de jefe de cuadrilla</h1>
+<p class="text-body-secondary mb-4">Bienvenido, {{ usuario.get_full_name|default:usuario.username }}.</p>
+
+{% include "dashboard/_tarjetas.html" %}
+
+{% if perms.gestor.add_lecturasensor or perms.gestor.view_lecturasensor or perms.gestor.view_predio %}
+<h2 class="h4 mb-3">Accesos rápidos</h2>
+<div class="row g-3">
+  {% if perms.gestor.add_lecturasensor %}
+  <div class="col-12 col-md-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h3 class="h5">Registrar lectura</h3>
+        <p class="text-body-secondary">Ingresa una nueva medición de un sensor.</p>
+        <a href="{% url 'lectura_create' %}" class="btn btn-primary">Nueva lectura</a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if perms.gestor.view_lecturasensor %}
+  <div class="col-12 col-md-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h3 class="h5">Lecturas</h3>
+        <p class="text-body-secondary">Revisa el historial y filtra por cuartel.</p>
+        <a href="{% url 'lectura_list' %}" class="btn btn-primary">Ver lecturas</a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if perms.gestor.view_predio %}
+  <div class="col-12 col-md-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h3 class="h5">Predios y cuarteles</h3>
+        <p class="text-body-secondary">Consulta los predios y sus cuarteles.</p>
+        <a href="{% url 'predio_list' %}" class="btn btn-primary">Ver predios</a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% include "dashboard/_ultimas_lecturas.html" %}
+{% endblock %}

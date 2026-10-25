@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de trabajador{% endblock %}
+
+{% block content %}
+
+<h1 class="h2 mb-4">
+    Panel de trabajador
+</h1>
+
+<p>
+    Bienvenido, {{ usuario.username }}.
+</p>
+
+<div class="alert alert-success">
+    El dashboard de trabajador está funcionando correctamente.
+</div>
+
+{% endblock %}

@@ -20,4 +20,9 @@ urlpatterns = [
     # lecturas
     path("lecturas/", views.LecturaListView.as_view(), name="lectura_list"),
     path("lecturas/nueva/", views.LecturaCreateView.as_view(), name="lectura_create"),
+
+    # roles
+    path("roles/", views.RolListView.as_view(), name="rol_list"),
+    # usuarios
+    path("usuarios/", views.UsuarioListView.as_view(), name="usuario_list"),
 ]

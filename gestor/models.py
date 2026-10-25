@@ -1,5 +1,7 @@
 from django.db import models
 from decimal import Decimal
+from django.contrib.auth.models import User, Group
+
 
 class Predio(models.Model):
     nombre = models.CharField(max_length=100)
@@ -39,3 +41,36 @@ class LecturaSensor(models.Model):
 
     def __str__(self):
         return f"{self.cuartel} · {self.fecha:%d/%m/%Y %H:%M}"
+
+class Administrador(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    grupo = models.ForeignKey(Group, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = "Administrador"
+        verbose_name_plural = "Administradores"
+
+    def __str__(self):
+        return self.user.username
+
+class Trabajador(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    grupo = models.ForeignKey(Group, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = "Trabajador"
+        verbose_name_plural = "Trabajadores"
+
+    def __str__(self):
+        return self.user.username
+
+class JCuadrilla(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    grupo = models.ForeignKey(Group, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = "Jefe de Cuadrilla"
+        verbose_name_plural = "Jefes de Cuadrilla"
+
+    def __str__(self):
+        return self.user.username
