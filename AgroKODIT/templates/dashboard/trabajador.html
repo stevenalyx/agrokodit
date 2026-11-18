@@ -1,19 +1,13 @@
 {% extends "base.html" %}
-
-{% block title %}Panel de trabajador{% endblock %}
+{% block title %}Mi panel de trabajo{% endblock %}
 
 {% block content %}
+<header class="dashboard-hero mb-4">
+  <p class="text-uppercase small fw-semibold mb-2">AgroKODIT · Mi actividad</p>
+  <h1 class="display-6 fw-bold mb-2">Mi panel de trabajo</h1>
+  <p class="mb-0">Bienvenido, {{ usuario.get_full_name|default:usuario.username }}. Revisa tus jornadas, asistencia y producción de collera.</p>
+</header>
 
-<h1 class="h2 mb-4">
-    Panel de trabajador
-</h1>
-
-<p>
-    Bienvenido, {{ usuario.username }}.
-</p>
-
-<div class="alert alert-success">
-    El dashboard de trabajador está funcionando correctamente.
-</div>
-
+{% include "dashboard/_tarjetas.html" %}
+{% include "dashboard/_ultimas_jornadas.html" %}
 {% endblock %}

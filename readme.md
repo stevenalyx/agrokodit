@@ -5,24 +5,24 @@
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?logo=bootstrap&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)
 
-Sistema web para gestionar predios agrícolas, sus cuarteles y las lecturas de los sensores instalados en terreno. Está desarrollado en Django como parte del ramo **Proyecto Integrado**, donde **KODIT** actúa como mandante simulado.
+Sistema web para gestionar predios, huertos, cuarteles, cuadrillas, colleras y jornadas de producción agrícola. Está desarrollado en Django como parte del ramo **Proyecto Integrado**, con **KODIT** como mandante.
 
 > Este repositorio contiene el prototipo funcional de la entrega. Algunas piezas siguen en construcción y están marcadas en la sección [Próximos pasos](#próximos-pasos).
 
 ## Contexto académico
 
-El proyecto comienza desde un caso: una empresa agrícola necesita llevar el control de sus fundos, de las subdivisiones de cultivo y de la telemetría que entregan los sensores. Como los sensores no reportan siempre las mismas variables, el modelo combina tablas relacionales con un campo JSON flexible.
+El proyecto permite controlar la operación agrícola desde la estructura territorial hasta la producción diaria por collera, con asistencia individual y validación del jefe de cuadrilla.
 
 La rúbrica de la asignatura pide, entre otras cosas, un prototipo interactivo, un modelo entidad-relación, bases estructuradas y no estructuradas, políticas de autenticación y autorización, y mitigación de amenazas comunes. Así se refleja cada punto en el código:
 
 ## Qué se puede hacer hoy
 
 - Iniciar sesión y cerrar sesión.
-- Ver desde la página de inicio un resumen (predios, cuarteles y lecturas registradas) y las últimas lecturas.
-- Registrar una lectura de sensor directamente desde el inicio.
+- Ver un dashboard con métricas y jornadas recientes, filtradas según el rol.
 - Crear, editar, ver y eliminar predios.
-- Crear, editar y eliminar los cuarteles de cada predio.
-- Listar las lecturas con paginación y filtrarlas por cuartel.
+- Organizar predios en huertos y huertos en cuarteles con superficie en hectáreas.
+- Registrar jornadas con labor, asistencia de ambas personas, kilos, calidad y pérdidas.
+- Permitir al jefe de cuadrilla validar las jornadas de sus equipos.
 - Administrar usuarios, permisos y datos desde el panel `/admin/` de Django.
 
 ## Tecnologías
@@ -39,39 +39,51 @@ La rúbrica de la asignatura pide, entre otras cosas, un prototipo interactivo, 
 
 ```mermaid
 erDiagram
-    PREDIO ||--o{ CUARTEL : "tiene"
-    CUARTEL ||--o{ LECTURA_SENSOR : "registra"
+    PREDIO ||--o{ HUERTO : "contiene"
+    HUERTO ||--o{ CUARTEL : "contiene"
+    CUADRILLA ||--o{ COLLERA : "organiza"
+    TRABAJADOR ||--o{ COLLERA : "integra"
+    COLLERA ||--o{ REGISTRO_JORNADA : "registra"
+    CUARTEL ||--o{ REGISTRO_JORNADA : "recibe"
+    LABOR ||--o{ REGISTRO_JORNADA : "describe"
+    JCUADRILLA ||--o{ CUADRILLA : "dirige"
 
     PREDIO {
         string nombre
         string ubicacion
         decimal superficie_hectareas
     }
-    CUARTEL {
+    HUERTO {
         int predio_id FK
         string nombre
     }
-    LECTURA_SENSOR {
+    CUARTEL {
+        int huerto_id FK
+        string nombre
+        decimal superficie_hectareas
+    }
+    COLLERA {
+        int cuadrilla_id FK
+        int trabajador_1_id FK
+        int trabajador_2_id FK
+    }
+    REGISTRO_JORNADA {
+        int collera_id FK
         int cuartel_id FK
+        int labor_id FK
         datetime fecha
-        json telemetria_dinamica
+        boolean asistencia_trabajador_1
+        boolean asistencia_trabajador_2
+        decimal kilos_producidos
+        string calidad
+        decimal kilos_perdida
+        boolean validado
     }
 ```
 
-- **Predio:** un fundo agrícola, con su nombre, ubicación y superficie en hectáreas.
-- **Cuartel:** una subdivisión de cultivo dentro de un predio. Si se elimina el predio, se eliminan sus cuarteles.
-- **LecturaSensor:** una medición asociada a un cuartel. Guarda la fecha automáticamente y los datos del sensor en `telemetria_dinamica`, un campo JSON que admite estructuras distintas sin cambiar el esquema de la base.
-
-Ejemplo de telemetría, tal como la guarda el formulario de registro:
-
-```json
-{
-  "humedad_suelo": 32.5,
-  "temperatura": 18.4,
-  "ph": 6.8,
-  "bateria": 87
-}
-```
+- **Collera:** dos trabajadores distintos, relacionados explícitamente y pertenecientes a una cuadrilla.
+- **RegistroJornada:** registra producción y asistencia para ambos trabajadores; la validación identifica al jefe de cuadrilla y la fecha de validación.
+- **Migración de datos:** los cuarteles previos se asocian a un “Huerto principal” por predio. Su superficie queda pendiente de completar, porque el esquema anterior no la almacenaba; los nuevos cuarteles deben informar hectáreas. Las lecturas de sensores se eliminan al aplicar la migración.
 
 ## Estructura del proyecto
 
@@ -92,7 +104,7 @@ ProyectoIntegrado/
 │       ├── dashboard.html
 │       ├── predio_list.html
 │       ├── predio_detail.html
-│       ├── lectura_list.html
+│       ├── jornada_list.html
 │       ├── form.html          # Formulario genérico de crear/editar
 │       ├── confirm_delete.html
 │       ├── _campo.html        # Campo de formulario reutilizable
@@ -101,7 +113,7 @@ ProyectoIntegrado/
 │           └── login.html
 │
 └── gestor/                    # App con la lógica del negocio agrícola
-    ├── models.py              # Predio, Cuartel, LecturaSensor
+    ├── models.py              # Estructura agrícola, cuadrillas y jornadas
     ├── forms.py               # Formularios con estilos Bootstrap
     ├── views.py               # Vistas basadas en clases con permisos
     ├── urls.py
@@ -143,26 +155,26 @@ Después abre <http://127.0.0.1:8000/> e inicia sesión con el usuario que usted
 
 | Ruta | Qué muestra |
 | --- | --- |
-| `/` | Resumen general y últimas lecturas |
+| `/` | Dashboard agrícola según el rol |
 | `/predios/` | Listado de predios |
-| `/predios/<id>/` | Detalle de un predio y sus cuarteles |
-| `/lecturas/` | Listado de lecturas, con filtro por cuartel |
-| `/lecturas/nueva/` | Registro de una lectura |
+| `/predios/<id>/` | Detalle de un predio, sus huertos y cuarteles |
+| `/jornadas/` | Jornadas visibles para el rol autenticado |
+| `/jornadas/nueva/` | Registro de producción y asistencia |
+| `/jornadas/<id>/validar/` | Validación de una jornada por su jefe de cuadrilla (POST) |
 | `/cuentas/login/` | Inicio de sesión |
 | `/admin/` | Panel de administración de Django |
 
 ## Roles y permisos
 
-Todas las vistas exigen iniciar sesión y el permiso de Django que corresponda a cada acción (por ejemplo `gestor.view_predio` o `gestor.add_lecturasensor`). El menú también oculta las opciones a las que el usuario no tiene acceso.
+Las vistas de gestión exigen iniciar sesión y los permisos de Django correspondientes. Las jornadas se limitan además a las cuadrillas del jefe o a las colleras del trabajador; la validación solo se permite al jefe de la cuadrilla asignada.
 
 Un superusuario puede hacer todo. Para el resto, los permisos se asignan a mano desde `/admin/`, ya sea por usuario o por grupo.
 
-La idea es trabajar con dos roles, y su creación automática aún no está implementada:
-
 | Rol | Alcance previsto |
 | --- | --- |
-| Agrónomo | Ver, crear, editar y eliminar predios, cuarteles y lecturas |
-| Operario | Ver todo y registrar lecturas |
+| Administrador | Métricas globales y gestión de la estructura agrícola |
+| Jefe de cuadrilla | Producción, asistencia y validación de sus cuadrillas |
+| Trabajador | Jornadas y asistencia de sus colleras |
 
 ## Seguridad
 
@@ -173,7 +185,7 @@ Lo que ya aporta el framework y el proyecto usa:
 - **XSS:** las plantillas de Django escapan el contenido por defecto.
 - **Contraseñas:** se aplican los validadores de contraseña de Django.
 - **Acceso:** las vistas requieren sesión iniciada y permisos específicos.
-- **Validación de datos:** el formulario de lecturas restringe rangos (por ejemplo, humedad entre 0 y 100, y pH entre 0 y 14).
+- **Validación de datos:** cada collera exige dos trabajadores distintos; los kilos no pueden ser negativos y el estado de validación debe incluir jefe y fecha.
 
 Pendiente de endurecer antes de cualquier despliegue real:
 
@@ -186,12 +198,7 @@ Pendiente de endurecer antes de cualquier despliegue real:
 
 ## Pruebas
 
-Todavía no hay pruebas automatizadas. El plan es cubrir:
-
-- Pruebas unitarias de los modelos.
-- Pruebas de integración de las vistas y de los permisos por rol.
-- Una prueba de rendimiento sencilla sobre el listado de lecturas.
-- Pruebas manuales de usabilidad en escritorio y móvil.
+Las pruebas unitarias y de dashboard se ejecutan con:
 
 Cuando existan, se ejecutarán con:
 
@@ -201,8 +208,8 @@ python manage.py test
 
 ## Próximos pasos
 
-- [ ] Comando de gestión para crear los grupos *Agrónomo* y *Operario* con sus permisos.
-- [ ] Pruebas unitarias, de integración y de rendimiento.
+- [ ] Comando de gestión para configurar los grupos y permisos agrícolas por rol.
+- [ ] Pruebas de rendimiento y revisión manual de usabilidad en escritorio y móvil.
 - [ ] Endurecer la configuración (variables de entorno, cookies seguras, `check --deploy`).
 - [ ] Agregar un `requirements.txt`.
 - [ ] Migrar la base de datos a PostgreSQL con Docker.

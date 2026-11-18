@@ -1,52 +1,38 @@
 {% extends "base.html" %}
-{% block title %}Panel de jefe de cuadrilla{% endblock %}
+{% block title %}Panel de cuadrilla{% endblock %}
 
 {% block content %}
-<h1 class="h2 mb-1">Panel de jefe de cuadrilla</h1>
-<p class="text-body-secondary mb-4">Bienvenido, {{ usuario.get_full_name|default:usuario.username }}.</p>
+<header class="dashboard-hero mb-4">
+  <p class="text-uppercase small fw-semibold mb-2">AgroKODIT · Operaciones</p>
+  <h1 class="display-6 fw-bold mb-2">Panel de jefe de cuadrilla</h1>
+  <p class="mb-0">Bienvenido, {{ usuario.get_full_name|default:usuario.username }}. Controla jornadas, asistencia y producción de tus colleras.</p>
+</header>
 
 {% include "dashboard/_tarjetas.html" %}
+{% include "dashboard/_ultimas_jornadas.html" %}
 
-{% if perms.gestor.add_lecturasensor or perms.gestor.view_lecturasensor or perms.gestor.view_predio %}
-<h2 class="h4 mb-3">Accesos rápidos</h2>
-<div class="row g-3">
-  {% if perms.gestor.add_lecturasensor %}
-  <div class="col-12 col-md-4">
-    <div class="card h-100 shadow-sm">
+<section class="row g-3 mt-2" aria-label="Accesos rápidos">
+  {% if perms.gestor.add_registrojornada %}
+  <div class="col-12 col-md-6">
+    <article class="card h-100 dashboard-action">
       <div class="card-body">
-        <h3 class="h5">Registrar lectura</h3>
-        <p class="text-body-secondary">Ingresa una nueva medición de un sensor.</p>
-        <a href="{% url 'lectura_create' %}" class="btn btn-primary">Nueva lectura</a>
+        <h2 class="h5">Registrar jornada</h2>
+        <p class="text-body-secondary">Registra la labor, asistencia y kilos de la collera.</p>
+        <a href="{% url 'jornada_create' %}" class="btn btn-primary">Nueva jornada</a>
       </div>
-    </div>
+    </article>
   </div>
   {% endif %}
-
-  {% if perms.gestor.view_lecturasensor %}
-  <div class="col-12 col-md-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-body">
-        <h3 class="h5">Lecturas</h3>
-        <p class="text-body-secondary">Revisa el historial y filtra por cuartel.</p>
-        <a href="{% url 'lectura_list' %}" class="btn btn-primary">Ver lecturas</a>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
   {% if perms.gestor.view_predio %}
-  <div class="col-12 col-md-4">
-    <div class="card h-100 shadow-sm">
+  <div class="col-12 col-md-6">
+    <article class="card h-100 dashboard-action">
       <div class="card-body">
-        <h3 class="h5">Predios y cuarteles</h3>
-        <p class="text-body-secondary">Consulta los predios y sus cuarteles.</p>
-        <a href="{% url 'predio_list' %}" class="btn btn-primary">Ver predios</a>
+        <h2 class="h5">Predios y cuarteles</h2>
+        <p class="text-body-secondary">Consulta la ubicación de las labores asignadas.</p>
+        <a href="{% url 'predio_list' %}" class="btn btn-outline-primary">Ver predios</a>
       </div>
-    </div>
+    </article>
   </div>
   {% endif %}
-</div>
-{% endif %}
-
-{% include "dashboard/_ultimas_lecturas.html" %}
+</section>
 {% endblock %}

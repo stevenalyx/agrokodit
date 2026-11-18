@@ -1,17 +1,30 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.urls import reverse_lazy
 from django.contrib.auth.models import Group, User
-from django.views.generic import(
-    CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView,
-)
-from .forms import CuartelForm, LecturaSensorForm, PredioForm
-from .models import Cuartel, LecturaSensor, Predio
 from django.contrib.auth.views import PasswordChangeView
 from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib import messages
+from django.core.exceptions import PermissionDenied
+from django.db.models.deletion import ProtectedError
+from django.db.models import Q, Sum
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
+from django.utils import timezone
+from django.views import View
+from django.views.generic import (
+    CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView,
+)
+from .forms import CuartelForm, HuertoForm, PredioForm, RegistroJornadaForm
+from .models import (
+    Collera,
+    Cuadrilla,
+    Cuartel,
+    Huerto,
+    JCuadrilla,
+    Predio,
+    RegistroJornada,
+    Trabajador,
+)
 
 
 class UsuarioPasswordChangeSelfView(LoginRequiredMixin, PasswordChangeView):
@@ -29,16 +42,24 @@ class AvisoAlertaMixin:
     success_message = ""
 
     def delete(self, request, *args, **kwargs):
-        response = super().delete(request, *args, **kwargs)
+        try:
+            response = super().delete(request, *args, **kwargs)
+        except ProtectedError:
+            messages.error(
+                request,
+                "No se puede eliminar este registro porque tiene jornadas agrícolas asociadas.",
+            )
+            return redirect(self.get_success_url())
         if self.success_message:
             messages.success(self.request, self.success_message)
         return response
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "dashboard.html"
+
     def get_template_names(self):
         usuario = self.request.user
-        if usuario.groups.filter(name="Administrador").exists():
+        if usuario.is_superuser or usuario.groups.filter(name="Administrador").exists():
             return ["dashboard/administrador.html"]
         elif usuario.groups.filter(name="Jefe de cuadrilla").exists():
             return ["dashboard/jefe_cuadrilla.html"]
@@ -49,7 +70,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         usuario = self.request.user
-        if usuario.groups.filter(name="Administrador").exists():
+        if usuario.is_superuser or usuario.groups.filter(name="Administrador").exists():
             rol = "Administrador"
         elif usuario.groups.filter(name="Jefe de cuadrilla").exists():
             rol = "Jefe de cuadrilla"
@@ -65,51 +86,77 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ctx["es_jefe_cuadrilla"] = rol == "Jefe de cuadrilla"
         ctx["es_trabajador"] = rol == "Trabajador"
 
-        ver_predios = usuario.has_perm(
-            "gestor.view_predio"
+        jornadas = RegistroJornada.objects.select_related(
+            "collera__cuadrilla__jefe__user",
+            "collera__trabajador_1__user",
+            "collera__trabajador_2__user",
+            "cuartel__huerto__predio",
+            "labor",
+            "validado_por__user",
         )
-
-        ver_cuarteles = usuario.has_perm(
-            "gestor.view_cuartel"
-        )
-
-        ver_lecturas = usuario.has_perm(
-            "gestor.view_lecturasensor"
-        )
-
-        ctx["puede_ver_predios"] = ver_predios
-        ctx["puede_ver_cuarteles"] = ver_cuarteles
-        ctx["puede_ver_lecturas"] = ver_lecturas
-
-        ctx["total_predios"] = (
-            Predio.objects.count()
-            if ver_predios
-            else None
-        )
-
-        ctx["total_cuarteles"] = (
-            Cuartel.objects.count()
-            if ver_cuarteles
-            else None
-        )
-
-        ctx["total_lecturas"] = (
-            LecturaSensor.objects.count()
-            if ver_lecturas
-            else None
-        )
-
-        if ver_lecturas:
-
-            ctx["ultimas_lecturas"] = (
-                LecturaSensor.objects
-                .select_related("cuartel__predio")
-                .order_by("-fecha")[:5]
+        jefe = JCuadrilla.objects.filter(user=usuario).first()
+        trabajador = Trabajador.objects.filter(user=usuario).first()
+        if rol == "Jefe de cuadrilla":
+            jornadas = (
+                jornadas.filter(collera__cuadrilla__jefe=jefe)
+                if jefe
+                else jornadas.none()
             )
+        elif rol == "Trabajador":
+            if trabajador:
+                jornadas = jornadas.filter(
+                    Q(collera__trabajador_1=trabajador)
+                    | Q(collera__trabajador_2=trabajador)
+                )
+            else:
+                jornadas = jornadas.none()
+        elif rol != "Administrador":
+            jornadas = jornadas.none()
 
+        resumen = jornadas.aggregate(
+            kilos=Sum("kilos_producidos"),
+            perdidas=Sum("kilos_perdida"),
+        )
+        ctx["total_jornadas"] = jornadas.count()
+        ctx["total_kilos"] = resumen["kilos"] or 0
+        ctx["total_perdidas"] = resumen["perdidas"] or 0
+        ctx["jornadas_pendientes"] = jornadas.filter(validado=False).count()
+        ctx["ultimas_jornadas"] = jornadas.order_by("-fecha", "-id")[:8]
+
+        if rol == "Administrador":
+            ctx["total_predios"] = Predio.objects.count()
+            ctx["total_huertos"] = Huerto.objects.count()
+            ctx["total_cuarteles"] = Cuartel.objects.count()
+            ctx["total_cuadrillas"] = Cuadrilla.objects.count()
+            ctx["total_colleras"] = Collera.objects.count()
+        elif rol == "Jefe de cuadrilla":
+            ctx["total_cuadrillas"] = (
+                jefe.cuadrillas.count() if jefe else 0
+            )
+            ctx["total_colleras"] = (
+                Collera.objects.filter(cuadrilla__jefe=jefe).count()
+                if jefe
+                else 0
+            )
+        elif rol == "Trabajador":
+            if trabajador:
+                colleras = Collera.objects.filter(
+                    Q(trabajador_1=trabajador) | Q(trabajador_2=trabajador)
+                )
+                ctx["total_colleras"] = colleras.count()
+                asistencias = Q(
+                    collera__trabajador_1=trabajador,
+                    asistencia_trabajador_1=True,
+                ) | Q(
+                    collera__trabajador_2=trabajador,
+                    asistencia_trabajador_2=True,
+                )
+                ctx["asistencias_personales"] = jornadas.filter(asistencias).count()
+            else:
+                ctx["total_colleras"] = 0
+                ctx["asistencias_personales"] = 0
         else:
-
-            ctx["ultimas_lecturas"] = []
+            ctx["total_colleras"] = 0
 
         return ctx
 
@@ -126,6 +173,7 @@ class PredioDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Predio
     permission_required = "gestor.view_predio"
     template_name = "predio_detail.html"
+    queryset = Predio.objects.prefetch_related("huertos__cuarteles")
 
 
 class PredioCreateView(LoginRequiredMixin, PermissionRequiredMixin,
@@ -172,8 +220,8 @@ class CuartelCreateView(LoginRequiredMixin, PermissionRequiredMixin,
 
     def get_initial(self):
         initial = super().get_initial()
-        if predio_id := self.request.GET.get("predio"):
-            initial["predio"] = predio_id
+        if huerto_id := self.request.GET.get("huerto"):
+            initial["huerto"] = huerto_id
         return initial
 
 
@@ -197,42 +245,117 @@ class CuartelDeleteView(LoginRequiredMixin, PermissionRequiredMixin,
     success_message = "El cuartel se eliminó."
 
 
-# ---------- Lecturas ----------
-class LecturaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    model = LecturaSensor
-    permission_required = "gestor.view_lecturasensor"
-    paginate_by = 15
-    template_name = "lectura_list.html"
+class HuertoCreateView(LoginRequiredMixin, PermissionRequiredMixin,
+                       SuccessMessageMixin, CreateView):
+    model = Huerto
+    form_class = HuertoForm
+    permission_required = "gestor.add_huerto"
+    template_name = "form.html"
+    success_url = reverse_lazy("predio_list")
+    success_message = "El huerto se creó correctamente."
+    extra_context = {"titulo": "Nuevo huerto"}
 
-    def _cuartel_filtrado(self):
-        valor = self.request.GET.get("cuartel", "")
-        return valor if valor.isdigit() else ""
+    def get_initial(self):
+        initial = super().get_initial()
+        if predio_id := self.request.GET.get("predio"):
+            initial["predio"] = predio_id
+        return initial
+
+
+class HuertoUpdateView(LoginRequiredMixin, PermissionRequiredMixin,
+                       SuccessMessageMixin, UpdateView):
+    model = Huerto
+    form_class = HuertoForm
+    permission_required = "gestor.change_huerto"
+    template_name = "form.html"
+    success_url = reverse_lazy("predio_list")
+    success_message = "El huerto se actualizó correctamente."
+    extra_context = {"titulo": "Editar huerto"}
+
+
+class HuertoDeleteView(LoginRequiredMixin, PermissionRequiredMixin,
+                       AvisoAlertaMixin, DeleteView):
+    model = Huerto
+    permission_required = "gestor.delete_huerto"
+    template_name = "confirm_delete.html"
+    success_url = reverse_lazy("predio_list")
+    success_message = "El huerto se eliminó."
+
+
+def jornadas_visibles_para(usuario):
+    queryset = RegistroJornada.objects.select_related(
+        "collera__cuadrilla__jefe__user",
+        "collera__trabajador_1__user",
+        "collera__trabajador_2__user",
+        "cuartel__huerto__predio",
+        "labor",
+        "validado_por__user",
+    )
+    if usuario.is_superuser or usuario.groups.filter(name="Administrador").exists():
+        return queryset
+    if usuario.groups.filter(name="Jefe de cuadrilla").exists():
+        return queryset.filter(collera__cuadrilla__jefe__user=usuario)
+    if usuario.groups.filter(name="Trabajador").exists():
+        return queryset.filter(
+            Q(collera__trabajador_1__user=usuario)
+            | Q(collera__trabajador_2__user=usuario)
+        )
+    return queryset.none()
+
+
+class RegistroJornadaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = RegistroJornada
+    permission_required = "gestor.view_registrojornada"
+    paginate_by = 15
+    template_name = "jornada_list.html"
 
     def get_queryset(self):
-        queryset = LecturaSensor.objects.select_related("cuartel__predio").order_by("-fecha")
-        if cuartel_id := self._cuartel_filtrado():
-            queryset = queryset.filter(cuartel_id=cuartel_id)
-        return queryset
+        return jornadas_visibles_para(self.request.user)
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        cuartel = self._cuartel_filtrado()
-        ctx["cuarteles"] = Cuartel.objects.select_related("predio")
-        ctx["cuartel_sel"] = cuartel
-        ctx["extra_query"] = f"&cuartel={cuartel}" if cuartel else ""
-        return ctx
+        context = super().get_context_data(**kwargs)
+        context["es_jefe_cuadrilla"] = self.request.user.groups.filter(
+            name="Jefe de cuadrilla"
+        ).exists()
+        return context
 
 
-class LecturaCreateView(LoginRequiredMixin, PermissionRequiredMixin,
-                        SuccessMessageMixin, CreateView):
-    
-    model = LecturaSensor
-    form_class = LecturaSensorForm
-    permission_required = "gestor.add_lecturasensor"
+class RegistroJornadaCreateView(LoginRequiredMixin, PermissionRequiredMixin,
+                                SuccessMessageMixin, CreateView):
+    model = RegistroJornada
+    form_class = RegistroJornadaForm
+    permission_required = "gestor.add_registrojornada"
     template_name = "form.html"
-    success_url = reverse_lazy("lectura_list")
-    success_message = "La lectura se registró correctamente."
-    extra_context = {"titulo": "Registrar lectura de sensor"}
+    success_url = reverse_lazy("jornada_list")
+    success_message = "La jornada se registró correctamente."
+    extra_context = {"titulo": "Registrar jornada"}
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
+
+class RegistroJornadaValidarView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    permission_required = "gestor.change_registrojornada"
+    raise_exception = True
+
+    def post(self, request, pk):
+        jornada = get_object_or_404(jornadas_visibles_para(request.user), pk=pk)
+        jefe = JCuadrilla.objects.filter(user=request.user).first()
+        if not jefe or jornada.collera.cuadrilla.jefe_id != jefe.pk:
+            raise PermissionDenied
+        if jornada.validado:
+            messages.warning(request, "Esta jornada ya fue validada.")
+        else:
+            jornada.validado = True
+            jornada.validado_por = jefe
+            jornada.fecha_validacion = timezone.now()
+            jornada.save(
+                update_fields=["validado", "validado_por", "fecha_validacion"]
+            )
+            messages.success(request, "La jornada fue validada.")
+        return redirect("jornada_list")
 
 # crear roles de administrador, jefe cuadrilla y trabajador
 # Los permisos se asignan de la siguiente manera:

@@ -1,38 +1,18 @@
-{% if total_predios is None and total_cuarteles is None and total_lecturas is None %}
-<div class="alert alert-info" role="status">
-  Tu cuenta todavía no tiene permisos para ver información del sistema. Pide a un administrador que te asigne un rol.
-</div>
-{% endif %}
-
-<ul class="row g-3 list-unstyled mb-4">
-  {% if total_predios is not None %}
-  <li class="col-12 col-md-4">
-    <div class="card h-100 text-center shadow-sm">
-      <div class="card-body">
-        <p class="display-5 fw-bold text-agro mb-0">{{ total_predios }}</p>
-        <p class="mb-0">predios</p>
-      </div>
-    </div>
-  </li>
+<section class="row g-3 mb-4" aria-label="Métricas agrícolas">
+  {% if es_administrador %}
+  <div class="col-6 col-lg-3"><article class="card metric-card h-100"><div class="card-body"><p class="metric-label">Predios</p><p class="metric-value">{{ total_predios }}</p></div></article></div>
+  <div class="col-6 col-lg-3"><article class="card metric-card h-100"><div class="card-body"><p class="metric-label">Huertos</p><p class="metric-value">{{ total_huertos }}</p></div></article></div>
+  <div class="col-6 col-lg-3"><article class="card metric-card h-100"><div class="card-body"><p class="metric-label">Cuarteles</p><p class="metric-value">{{ total_cuarteles }}</p></div></article></div>
+  <div class="col-6 col-lg-3"><article class="card metric-card h-100"><div class="card-body"><p class="metric-label">Cuadrillas</p><p class="metric-value">{{ total_cuadrillas }}</p></div></article></div>
+  {% else %}
+  <div class="col-6 col-lg-3"><article class="card metric-card h-100"><div class="card-body"><p class="metric-label">Colleras</p><p class="metric-value">{{ total_colleras }}</p></div></article></div>
   {% endif %}
-  {% if total_cuarteles is not None %}
-  <li class="col-12 col-md-4">
-    <div class="card h-100 text-center shadow-sm">
-      <div class="card-body">
-        <p class="display-5 fw-bold text-agro mb-0">{{ total_cuarteles }}</p>
-        <p class="mb-0">cuarteles</p>
-      </div>
-    </div>
-  </li>
+  <div class="col-6 col-lg-3"><article class="card metric-card h-100"><div class="card-body"><p class="metric-label">Jornadas</p><p class="metric-value">{{ total_jornadas }}</p></div></article></div>
+  <div class="col-6 col-lg-3"><article class="card metric-card h-100"><div class="card-body"><p class="metric-label">{% if es_trabajador %}Kilos de la collera{% else %}Kilos producidos{% endif %}</p><p class="metric-value">{{ total_kilos|floatformat:0 }}</p><p class="metric-unit">kg acumulados</p></div></article></div>
+  <div class="col-6 col-lg-3"><article class="card metric-card h-100"><div class="card-body"><p class="metric-label">Kilos de pérdida</p><p class="metric-value">{{ total_perdidas|floatformat:0 }}</p><p class="metric-unit">kg acumulados</p></div></article></div>
+  {% if es_administrador or es_jefe_cuadrilla %}
+  <div class="col-6 col-lg-3"><article class="card metric-card h-100"><div class="card-body"><p class="metric-label">Por validar</p><p class="metric-value">{{ jornadas_pendientes }}</p></div></article></div>
+  {% elif es_trabajador %}
+  <div class="col-6 col-lg-3"><article class="card metric-card h-100"><div class="card-body"><p class="metric-label">Asistencias</p><p class="metric-value">{{ asistencias_personales }}</p></div></article></div>
   {% endif %}
-  {% if total_lecturas is not None %}
-  <li class="col-12 col-md-4">
-    <div class="card h-100 text-center shadow-sm">
-      <div class="card-body">
-        <p class="display-5 fw-bold text-agro mb-0">{{ total_lecturas }}</p>
-        <p class="mb-0">lecturas registradas</p>
-      </div>
-    </div>
-  </li>
-  {% endif %}
-</ul>
+</section>

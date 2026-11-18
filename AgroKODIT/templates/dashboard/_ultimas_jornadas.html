@@ -1,0 +1,54 @@
+<section class="card dashboard-table" aria-labelledby="jornadas-recientes">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <div>
+        <p class="metric-label mb-1">Actividad reciente</p>
+        <h2 id="jornadas-recientes" class="h4 mb-0">Jornadas agrícolas</h2>
+      </div>
+      {% if perms.gestor.view_registrojornada %}
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'jornada_list' %}">Ver todas</a>
+      {% endif %}
+    </div>
+    {% if ultimas_jornadas %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <caption class="visually-hidden">Jornadas recientes de acuerdo con tu rol</caption>
+        <thead>
+          <tr>
+            <th scope="col">Fecha</th>
+            <th scope="col">Collera</th>
+            <th scope="col">Cuartel</th>
+            <th scope="col">Labor</th>
+            <th scope="col" class="text-end">Producción</th>
+            <th scope="col" class="text-end">Pérdida</th>
+            <th scope="col">Calidad</th>
+            <th scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for jornada in ultimas_jornadas %}
+          <tr>
+            <td>{{ jornada.fecha|date:"d/m/Y" }}</td>
+            <td>{{ jornada.collera }}</td>
+            <td>{{ jornada.cuartel.huerto.predio.nombre }} · {{ jornada.cuartel }}</td>
+            <td>{{ jornada.labor }}</td>
+            <td class="text-end">{{ jornada.kilos_producidos|floatformat:2 }} kg</td>
+            <td class="text-end">{{ jornada.kilos_perdida|floatformat:2 }} kg</td>
+            <td>{{ jornada.get_calidad_display }}</td>
+            <td>
+              {% if jornada.validado %}
+              <span class="badge text-bg-success">Validada</span>
+              {% else %}
+              <span class="badge text-bg-warning">Pendiente</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-body-secondary mb-0">Todavía no hay jornadas para mostrar.</p>
+    {% endif %}
+  </div>
+</section>

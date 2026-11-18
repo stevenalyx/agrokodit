@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Jornadas agrícolas{% endblock %}
+
+{% block content %}
+<header class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+  <div>
+    <p class="metric-label mb-1">AgroKODIT · Producción</p>
+    <h1 class="h2 mb-0">Jornadas agrícolas</h1>
+    <p class="text-body-secondary mt-2 mb-0">Asistencia, labores, producción y validación por cuadrilla.</p>
+  </div>
+  {% if perms.gestor.add_registrojornada %}
+  <a class="btn btn-primary" href="{% url 'jornada_create' %}">Registrar jornada</a>
+  {% endif %}
+</header>
+
+{% if object_list %}
+<div class="card dashboard-table">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <caption class="visually-hidden">Jornadas visibles para tu rol</caption>
+      <thead>
+        <tr>
+          <th scope="col">Fecha</th>
+          <th scope="col">Collera</th>
+          <th scope="col">Cuartel</th>
+          <th scope="col">Labor</th>
+          <th scope="col">Asistencia</th>
+          <th scope="col" class="text-end">Kilos</th>
+          <th scope="col" class="text-end">Pérdida</th>
+          <th scope="col">Calidad</th>
+          <th scope="col">Observaciones</th>
+          <th scope="col">Validación</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for jornada in object_list %}
+        <tr>
+          <td>{{ jornada.fecha|date:"d/m/Y" }}</td>
+          <td>{{ jornada.collera }}</td>
+          <td>{{ jornada.cuartel.huerto.predio.nombre }} · {{ jornada.cuartel.huerto.nombre }} · {{ jornada.cuartel.nombre }}</td>
+          <td>{{ jornada.labor }}</td>
+          <td>
+            <span class="fw-semibold">{{ jornada.collera.trabajador_1 }}</span>:
+            {% if jornada.asistencia_trabajador_1 %}Presente{% else %}Ausente{% endif %}<br>
+            <span class="fw-semibold">{{ jornada.collera.trabajador_2 }}</span>:
+            {% if jornada.asistencia_trabajador_2 %}Presente{% else %}Ausente{% endif %}
+          </td>
+          <td class="text-end">{{ jornada.kilos_producidos|floatformat:2 }}</td>
+          <td class="text-end">{{ jornada.kilos_perdida|floatformat:2 }}</td>
+          <td>{{ jornada.get_calidad_display }}</td>
+          <td>{{ jornada.observaciones|default:"—"|truncatechars:80 }}</td>
+          <td>
+            {% if jornada.validado %}
+            <span class="badge text-bg-success">Validada</span>
+            <span class="d-block small text-body-secondary">{{ jornada.validado_por }}</span>
+            {% else %}
+            <span class="badge text-bg-warning">Pendiente</span>
+            {% if es_jefe_cuadrilla and perms.gestor.change_registrojornada %}
+            <form method="post" action="{% url 'jornada_validar' jornada.pk %}" class="mt-2">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-success">Validar</button>
+            </form>
+            {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include "_paginacion.html" %}
+{% else %}
+<div class="alert alert-info" role="status">No hay jornadas registradas para mostrar.</div>
+{% endif %}
+{% endblock %}

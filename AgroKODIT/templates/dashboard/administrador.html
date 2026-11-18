@@ -1,62 +1,41 @@
 {% extends "base.html" %}
-{% block title %}Panel de administrador{% endblock %}
+{% block title %}Panel AgroKODIT{% endblock %}
 
 {% block content %}
-<h1 class="h2 mb-1">Panel de administrador</h1>
-<p class="text-body-secondary mb-4">Bienvenido, {{ usuario.get_full_name|default:usuario.username }}.</p>
+<header class="dashboard-hero mb-4">
+  <p class="text-uppercase small fw-semibold mb-2">AgroKODIT · Operaciones</p>
+  <h1 class="display-6 fw-bold mb-2">Panel de administrador</h1>
+  <p class="mb-0">Bienvenido, {{ usuario.get_full_name|default:usuario.username }}. Resumen general de la operación agrícola.</p>
+</header>
 
 {% include "dashboard/_tarjetas.html" %}
+{% include "dashboard/_ultimas_jornadas.html" %}
 
-<h2 class="h4 mb-3">Gestión del sistema</h2>
-<div class="row g-3">
-  {% if perms.gestor.view_predio %}
-  <div class="col-12 col-md-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-body">
-        <h3 class="h5">Predios y cuarteles</h3>
-        <p class="text-body-secondary">Crea, edita y elimina predios y sus cuarteles.</p>
-        <a href="{% url 'predio_list' %}" class="btn btn-primary">Ver predios</a>
-      </div>
+<section class="mt-4" aria-labelledby="gestion">
+  <h2 id="gestion" class="h4 mb-3">Gestión del sistema</h2>
+  <div class="row g-3">
+    {% if perms.gestor.view_predio %}
+    <div class="col-12 col-md-6 col-xl-4">
+      <article class="card h-100 dashboard-action">
+        <div class="card-body">
+          <h3 class="h5">Predios y huertos</h3>
+          <p class="text-body-secondary">Administra predios, huertos y cuarteles.</p>
+          <a href="{% url 'predio_list' %}" class="btn btn-primary">Ver predios</a>
+        </div>
+      </article>
     </div>
-  </div>
-  {% endif %}
-
-  {% if perms.gestor.view_lecturasensor %}
-  <div class="col-12 col-md-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-body">
-        <h3 class="h5">Lecturas de sensores</h3>
-        <p class="text-body-secondary">Consulta el historial y filtra por cuartel.</p>
-        <a href="{% url 'lectura_list' %}" class="btn btn-primary">Ver lecturas</a>
-      </div>
+    {% endif %}
+    {% if user.is_staff and perms.auth.view_user %}
+    <div class="col-12 col-md-6 col-xl-4">
+      <article class="card h-100 dashboard-action">
+        <div class="card-body">
+          <h3 class="h5">Usuarios y cuadrillas</h3>
+          <p class="text-body-secondary">Administra trabajadores, jefaturas y equipos.</p>
+          <a href="{% url 'admin:index' %}" class="btn btn-outline-primary">Abrir administración</a>
+        </div>
+      </article>
     </div>
+    {% endif %}
   </div>
-  {% endif %}
-
-  {% if user.is_staff and perms.auth.view_user %}
-  <div class="col-12 col-md-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-body">
-        <h3 class="h5">Usuarios</h3>
-        <p class="text-body-secondary">Crea usuarios y asígnales un rol.</p>
-        <a href="{% url 'admin:auth_user_changelist' %}" class="btn btn-primary">Gestionar usuarios</a>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
-  {% if user.is_staff and perms.auth.view_group %}
-  <div class="col-12 col-md-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-body">
-        <h3 class="h5">Roles y permisos</h3>
-        <p class="text-body-secondary">Define qué puede hacer cada rol.</p>
-        <a href="{% url 'admin:auth_group_changelist' %}" class="btn btn-primary">Gestionar roles</a>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-</div>
-
-{% include "dashboard/_ultimas_lecturas.html" %}
+</section>
 {% endblock %}

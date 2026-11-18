@@ -1,7 +1,16 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 
-from .models import Cuartel, LecturaSensor, Predio
+from .models import (
+    Collera,
+    Cuadrilla,
+    Cuartel,
+    Huerto,
+    JCuadrilla,
+    Labor,
+    Predio,
+    RegistroJornada,
+)
 
 
 class BootstrapAccesibleMixin:
@@ -45,46 +54,87 @@ class PredioForm(BootstrapAccesibleMixin, forms.ModelForm):
         }
 
 
+class HuertoForm(BootstrapAccesibleMixin, forms.ModelForm):
+    class Meta:
+        model = Huerto
+        fields = ["predio", "nombre"]
+        labels = {
+            "predio": "Predio al que pertenece",
+            "nombre": "Nombre del huerto",
+        }
+
+
 class CuartelForm(BootstrapAccesibleMixin, forms.ModelForm):
     class Meta:
         model = Cuartel
-        fields = ["predio", "nombre"]
+        fields = ["huerto", "nombre", "superficie_hectareas"]
         labels = {
-            'predio': "Predio al que pertenece",
-            'nombre': "Nombre del cuartel",
+            "huerto": "Huerto al que pertenece",
+            "nombre": "Nombre del cuartel",
+            "superficie_hectareas": "Superficie (hectáreas)",
         }
 
 
-class LecturaSensorForm(BootstrapAccesibleMixin, forms.ModelForm):
-    
-    humedad_suelo = forms.FloatField(
-        label="Humedad del suelo (%)", min_value=0, max_value=100,
-        help_text="Valor entre 0 y 100.",
-    )
-    
-    temperatura = forms.FloatField(
-        label="Temperatura (°C)", min_value=-30, max_value=70,
-    )
-    
-    ph = forms.FloatField(
-        label="pH del suelo", min_value=0, max_value=14,
-        help_text="Escala de 0 a 14.",
-    )
-    
-    bateria = forms.IntegerField(
-        label="Nivel de batería del sensor (%)", min_value=0, max_value=100,
-    )
-
+class CuadrillaForm(BootstrapAccesibleMixin, forms.ModelForm):
     class Meta:
-        model = LecturaSensor
-        fields = ["cuartel"]
-        labels = {"cuartel": "Cuartel"}
+        model = Cuadrilla
+        fields = ["nombre", "jefe"]
 
-    def save(self, commit=True):
-        self.instance.telemetria_dinamica = {
-            "humedad_suelo": self.cleaned_data["humedad_suelo"],
-            "temperatura": self.cleaned_data["temperatura"],
-            "ph": self.cleaned_data["ph"],
-            "bateria": self.cleaned_data["bateria"],
+
+class ColleraForm(BootstrapAccesibleMixin, forms.ModelForm):
+    class Meta:
+        model = Collera
+        fields = ["cuadrilla", "trabajador_1", "trabajador_2"]
+
+
+class LaborForm(BootstrapAccesibleMixin, forms.ModelForm):
+    class Meta:
+        model = Labor
+        fields = ["nombre", "descripcion", "activa"]
+
+
+class RegistroJornadaForm(BootstrapAccesibleMixin, forms.ModelForm):
+    class Meta:
+        model = RegistroJornada
+        fields = [
+            "fecha",
+            "collera",
+            "cuartel",
+            "labor",
+            "asistencia_trabajador_1",
+            "asistencia_trabajador_2",
+            "kilos_producidos",
+            "calidad",
+            "kilos_perdida",
+            "observaciones",
+        ]
+        widgets = {
+            "fecha": forms.DateInput(attrs={"type": "date"}),
+            "observaciones": forms.Textarea(attrs={"rows": 3}),
         }
-        return super().save(commit=commit)
+        labels = {
+            "fecha": "Fecha de la jornada",
+            "collera": "Collera",
+            "cuartel": "Cuartel",
+            "labor": "Labor realizada",
+            "kilos_producidos": "Kilos producidos",
+            "calidad": "Calidad",
+            "observaciones": "Observaciones",
+        }
+        help_texts = {
+            "kilos_producidos": "Producción total de la collera para esta jornada.",
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user is not None and not (
+            user.is_superuser or user.groups.filter(name="Administrador").exists()
+        ):
+            jefe = JCuadrilla.objects.filter(user=user).first()
+            if jefe is None:
+                self.fields["collera"].queryset = Collera.objects.none()
+            else:
+                self.fields["collera"].queryset = Collera.objects.filter(
+                    cuadrilla__jefe=jefe
+                )
+        self.fields["labor"].queryset = Labor.objects.filter(activa=True)

@@ -1,8 +1,11 @@
 {% extends "base.html" %}
+{% block title %}Página no encontrada{% endblock %}
 
-<navbar class="navbar navbar-expand-lg navbar-dark bg-agro" aria-label="Navegación principal">
-  <div class="container">
-    <a class="navbar-brand fw-bold" href="{% url 'dashboard' %}">AgroKODIT</a>
-  </div>
-  
 {% block content %}
+<div class="mx-auto my-5 text-center" style="max-width: 38rem">
+  <p class="display-1 fw-bold text-agro mb-0">404</p>
+  <h1 class="h3 mb-3">No encontramos esa página</h1>
+  <p class="text-body-secondary">Puede que el recurso no exista o no esté disponible para tu rol.</p>
+  <a class="btn btn-primary" href="{% url 'dashboard' %}">Volver al inicio</a>
+</div>
+{% endblock %}
