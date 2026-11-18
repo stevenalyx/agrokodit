@@ -73,7 +73,7 @@ Ejemplo de telemetría, tal como la guarda el formulario de registro:
 }
 ```
 
-## Estructura del proyecto
+## Estructura del proyecto (EN MODIFICACIÓN - 18 DE NOVIEMBRE 2026)
 
 ```text
 ProyectoIntegrado/
