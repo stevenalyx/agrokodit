@@ -1,4 +1,4 @@
-# AgroKODIT
+# AgroKODIT ( EN MODO DE DESARROLLO )
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django-3.2-092E20?logo=django&logoColor=white)
@@ -73,7 +73,7 @@ Ejemplo de telemetría, tal como la guarda el formulario de registro:
 }
 ```
 
-## Estructura del proyecto (EN MODIFICACIÓN - 18 DE NOVIEMBRE 2026)
+## Estructura del proyecto
 
 ```text
 ProyectoIntegrado/
