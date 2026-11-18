@@ -21,15 +21,16 @@ La rúbrica de la asignatura pide, entre otras cosas, un prototipo interactivo, 
 - Ver un dashboard con métricas y jornadas recientes, filtradas según el rol.
 - Crear, editar, ver y eliminar predios.
 - Organizar predios en huertos y huertos en cuarteles con superficie en hectáreas.
+- Crear desde la interfaz el personal agrícola, las cuadrillas, las colleras de dos personas y el catálogo de labores.
 - Registrar jornadas con labor, asistencia de ambas personas, kilos, calidad y pérdidas.
 - Permitir al jefe de cuadrilla validar las jornadas de sus equipos.
-- Administrar usuarios, permisos y datos desde el panel `/admin/` de Django.
+- Administrar el trabajo diario desde los paneles web; `/admin/` queda como herramienta técnica opcional.
 
 ## Tecnologías
 
 | Capa | Herramienta |
 | --- | --- |
-| Lenguaje | Python d versión 3.11 |
+| Lenguaje | Python 3.11 |
 | Framework | Django 3.2 (vistas basadas en clases) |
 | Base de datos | SQLite (en desarrollo) |
 | Interfaz | Plantillas de Django + Bootstrap 5.3 |
@@ -158,6 +159,11 @@ Después abre <http://127.0.0.1:8000/> e inicia sesión con el usuario que usted
 | `/` | Dashboard agrícola según el rol |
 | `/predios/` | Listado de predios |
 | `/predios/<id>/` | Detalle de un predio, sus huertos y cuarteles |
+| `/personal/` | Personal agrícola y perfiles |
+| `/personal/nuevo/` | Crear cuenta de trabajador o jefe de cuadrilla |
+| `/cuadrillas/` | Listado y creación de cuadrillas |
+| `/colleras/` | Listado y creación de colleras |
+| `/labores/` | Catálogo de labores |
 | `/jornadas/` | Jornadas visibles para el rol autenticado |
 | `/jornadas/nueva/` | Registro de producción y asistencia |
 | `/jornadas/<id>/validar/` | Validación de una jornada por su jefe de cuadrilla (POST) |
@@ -166,9 +172,9 @@ Después abre <http://127.0.0.1:8000/> e inicia sesión con el usuario que usted
 
 ## Roles y permisos
 
-Las vistas de gestión exigen iniciar sesión y los permisos de Django correspondientes. Las jornadas se limitan además a las cuadrillas del jefe o a las colleras del trabajador; la validación solo se permite al jefe de la cuadrilla asignada.
+Las vistas de gestión exigen iniciar sesión y permisos de Django; el rol Administrador puede gestionarlas desde la interfaz. Las jornadas se limitan además a las cuadrillas del jefe o a las colleras del trabajador; la validación solo se permite al jefe de la cuadrilla asignada.
 
-Un superusuario puede hacer todo. Para el resto, los permisos se asignan a mano desde `/admin/`, ya sea por usuario o por grupo.
+Al crear personal desde la página se crea su perfil y se configuran los permisos básicos de su rol. El panel `/admin/` sigue disponible para tareas técnicas, pero ya no es necesario para crear los registros agrícolas habituales.
 
 | Rol | Alcance previsto |
 | --- | --- |

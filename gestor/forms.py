@@ -1,5 +1,8 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.models import Group, Permission, User
+from django.db import transaction
+from django.db.models import TextChoices
 
 from .models import (
     Collera,
@@ -10,6 +13,7 @@ from .models import (
     Labor,
     Predio,
     RegistroJornada,
+    Trabajador,
 )
 
 
@@ -79,18 +83,86 @@ class CuadrillaForm(BootstrapAccesibleMixin, forms.ModelForm):
     class Meta:
         model = Cuadrilla
         fields = ["nombre", "jefe"]
+        labels = {
+            "nombre": "Nombre de la cuadrilla",
+            "jefe": "Jefe de cuadrilla",
+        }
 
 
 class ColleraForm(BootstrapAccesibleMixin, forms.ModelForm):
     class Meta:
         model = Collera
         fields = ["cuadrilla", "trabajador_1", "trabajador_2"]
+        labels = {
+            "cuadrilla": "Cuadrilla",
+            "trabajador_1": "Trabajador 1",
+            "trabajador_2": "Trabajador 2",
+        }
 
 
 class LaborForm(BootstrapAccesibleMixin, forms.ModelForm):
     class Meta:
         model = Labor
         fields = ["nombre", "descripcion", "activa"]
+        labels = {
+            "nombre": "Nombre de la labor",
+            "descripcion": "Descripción",
+            "activa": "Labor activa",
+        }
+        widgets = {
+            "descripcion": forms.Textarea(attrs={"rows": 3}),
+        }
+
+
+class PersonalAgricolaForm(BootstrapAccesibleMixin, UserCreationForm):
+    class Rol(TextChoices):
+        TRABAJADOR = "Trabajador", "Trabajador"
+        JEFE_CUADRILLA = "Jefe de cuadrilla", "Jefe de cuadrilla"
+
+    rol = forms.ChoiceField(
+        choices=Rol.choices,
+        label="Rol agrícola",
+        help_text="Se creará el perfil de trabajador o jefe de cuadrilla.",
+    )
+
+    class Meta:
+        model = User
+        fields = ["username", "first_name", "last_name", "email"]
+        labels = {
+            "username": "Nombre de usuario",
+            "first_name": "Nombre",
+            "last_name": "Apellido",
+            "email": "Correo electrónico",
+        }
+
+    @transaction.atomic
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        if not commit:
+            return user
+
+        user.save()
+        rol = self.cleaned_data["rol"]
+        grupo, _ = Group.objects.get_or_create(name=rol)
+        user.groups.add(grupo)
+        if rol == self.Rol.JEFE_CUADRILLA:
+            JCuadrilla.objects.create(user=user, grupo=grupo)
+            permisos = [
+                "view_registrojornada",
+                "add_registrojornada",
+                "change_registrojornada",
+                "view_predio",
+            ]
+        else:
+            Trabajador.objects.create(user=user, grupo=grupo)
+            permisos = ["view_registrojornada"]
+        grupo.permissions.add(
+            *Permission.objects.filter(
+                content_type__app_label="gestor",
+                codename__in=permisos,
+            )
+        )
+        return user
 
 
 class RegistroJornadaForm(BootstrapAccesibleMixin, forms.ModelForm):

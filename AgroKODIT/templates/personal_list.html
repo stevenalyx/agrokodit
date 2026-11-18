@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Personal agrícola{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">AgroKODIT · Equipo humano</p>
+    <h1 class="page-title">Personal agrícola</h1>
+    <p class="page-description">Crea cuentas de trabajadores y jefes de cuadrilla; el perfil queda asociado automáticamente.</p>
+  </div>
+  {% if es_administrador or perms.auth.add_user %}
+  <a class="btn btn-primary" href="{% url 'personal_create' %}">Agregar personal</a>
+  {% endif %}
+</header>
+
+<section class="roster-section mb-4" aria-labelledby="jefes">
+  <div class="section-heading">
+    <div><p class="eyebrow">Responsables</p><h2 id="jefes" class="h4">Jefes de cuadrilla</h2></div>
+  </div>
+  {% if jefes %}
+  <div class="roster-grid">
+    {% for jefe in jefes %}
+    <article class="roster-card">
+      <span class="profile-mark" aria-hidden="true">{{ jefe.user.first_name|default:jefe.user.username|slice:":1"|upper }}</span>
+      <div><h3 class="h6 mb-1">{{ jefe }}</h3><p class="mb-0">{{ jefe.user.email|default:"Sin correo" }}</p></div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="empty-inline">No hay jefes de cuadrilla registrados.</p>
+  {% endif %}
+</section>
+
+<section class="roster-section" aria-labelledby="trabajadores">
+  <div class="section-heading">
+    <div><p class="eyebrow">Cuadrillas</p><h2 id="trabajadores" class="h4">Trabajadores</h2></div>
+  </div>
+  {% if trabajadores %}
+  <div class="roster-grid">
+    {% for trabajador in trabajadores %}
+    <article class="roster-card">
+      <span class="profile-mark" aria-hidden="true">{{ trabajador.user.first_name|default:trabajador.user.username|slice:":1"|upper }}</span>
+      <div><h3 class="h6 mb-1">{{ trabajador }}</h3><p class="mb-0">{{ trabajador.user.email|default:"Sin correo" }}</p></div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="empty-inline">No hay trabajadores registrados.</p>
+  {% endif %}
+</section>
+{% endblock %}

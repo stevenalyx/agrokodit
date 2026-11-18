@@ -8,7 +8,7 @@
     <h1 class="h2 mb-0">Jornadas agrícolas</h1>
     <p class="text-body-secondary mt-2 mb-0">Asistencia, labores, producción y validación por cuadrilla.</p>
   </div>
-  {% if perms.gestor.add_registrojornada %}
+  {% if es_administrador or perms.gestor.add_registrojornada %}
   <a class="btn btn-primary" href="{% url 'jornada_create' %}">Registrar jornada</a>
   {% endif %}
 </header>

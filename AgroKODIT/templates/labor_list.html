@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Labores{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">AgroKODIT · Catálogo</p>
+    <h1 class="page-title">Labores agrícolas</h1>
+    <p class="page-description">Mantén el catálogo de labores disponible para registrar jornadas.</p>
+  </div>
+  {% if es_administrador or perms.gestor.add_labor %}
+  <a class="btn btn-primary" href="{% url 'labor_create' %}">Nueva labor</a>
+  {% endif %}
+</header>
+
+{% if object_list %}
+<div class="card dashboard-table">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <caption class="visually-hidden">Labores agrícolas configuradas</caption>
+      <thead>
+        <tr><th scope="col">Labor</th><th scope="col">Descripción</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr>
+      </thead>
+      <tbody>
+        {% for labor in object_list %}
+        <tr>
+          <th scope="row">{{ labor.nombre }}</th>
+          <td>{{ labor.descripcion|default:"—" }}</td>
+          <td>{% if labor.activa %}<span class="badge text-bg-success">Activa</span>{% else %}<span class="badge text-bg-secondary">Inactiva</span>{% endif %}</td>
+          <td>
+            <div class="d-flex flex-wrap gap-2">
+              {% if es_administrador or perms.gestor.change_labor %}
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'labor_update' labor.pk %}">Editar</a>
+              {% endif %}
+              {% if es_administrador or perms.gestor.delete_labor %}
+              <a class="btn btn-sm btn-outline-danger" href="{% url 'labor_delete' labor.pk %}">Eliminar</a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">
+  <span class="empty-state-mark" aria-hidden="true">03</span>
+  <h2 class="h4">Aún no hay labores registradas</h2>
+  <p>Agrega labores para que puedan seleccionarse en el registro de jornada.</p>
+  {% if es_administrador or perms.gestor.add_labor %}
+  <a class="btn btn-primary" href="{% url 'labor_create' %}">Crear labor</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

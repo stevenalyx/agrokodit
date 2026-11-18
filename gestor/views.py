@@ -14,13 +14,23 @@ from django.views import View
 from django.views.generic import (
     CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView,
 )
-from .forms import CuartelForm, HuertoForm, PredioForm, RegistroJornadaForm
+from .forms import (
+    ColleraForm,
+    CuadrillaForm,
+    CuartelForm,
+    HuertoForm,
+    LaborForm,
+    PersonalAgricolaForm,
+    PredioForm,
+    RegistroJornadaForm,
+)
 from .models import (
     Collera,
     Cuadrilla,
     Cuartel,
     Huerto,
     JCuadrilla,
+    Labor,
     Predio,
     RegistroJornada,
     Trabajador,
@@ -53,6 +63,23 @@ class AvisoAlertaMixin:
         if self.success_message:
             messages.success(self.request, self.success_message)
         return response
+
+
+class AdministradorPermisoMixin(PermissionRequiredMixin):
+    def es_administrador(self):
+        usuario = self.request.user
+        return usuario.is_superuser or usuario.groups.filter(
+            name="Administrador"
+        ).exists()
+
+    def has_permission(self):
+        return self.es_administrador() or super().has_permission()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["es_administrador"] = self.es_administrador()
+        return context
+
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "dashboard.html"
@@ -162,21 +189,21 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
 
 # ---------- Predios ----------
-class PredioListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class PredioListView(LoginRequiredMixin, AdministradorPermisoMixin, ListView):
     model = Predio
     permission_required = "gestor.view_predio"
     paginate_by = 10
     template_name = "predio_list.html"
 
 
-class PredioDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class PredioDetailView(LoginRequiredMixin, AdministradorPermisoMixin, DetailView):
     model = Predio
     permission_required = "gestor.view_predio"
     template_name = "predio_detail.html"
     queryset = Predio.objects.prefetch_related("huertos__cuarteles")
 
 
-class PredioCreateView(LoginRequiredMixin, PermissionRequiredMixin,
+class PredioCreateView(LoginRequiredMixin, AdministradorPermisoMixin,
                        SuccessMessageMixin, CreateView):
     model = Predio
     form_class = PredioForm
@@ -187,7 +214,7 @@ class PredioCreateView(LoginRequiredMixin, PermissionRequiredMixin,
     extra_context = {"titulo": "Nuevo predio"}
 
 
-class PredioUpdateView(LoginRequiredMixin, PermissionRequiredMixin,
+class PredioUpdateView(LoginRequiredMixin, AdministradorPermisoMixin,
                        SuccessMessageMixin, UpdateView):
     model = Predio
     form_class = PredioForm
@@ -198,7 +225,7 @@ class PredioUpdateView(LoginRequiredMixin, PermissionRequiredMixin,
     extra_context = {"titulo": "Editar predio"}
 
 
-class PredioDeleteView(LoginRequiredMixin, PermissionRequiredMixin,
+class PredioDeleteView(LoginRequiredMixin, AdministradorPermisoMixin,
                        AvisoAlertaMixin, DeleteView):
     model = Predio
     permission_required = "gestor.delete_predio"
@@ -208,7 +235,7 @@ class PredioDeleteView(LoginRequiredMixin, PermissionRequiredMixin,
 
 
 # ---------- Cuarteles ----------
-class CuartelCreateView(LoginRequiredMixin, PermissionRequiredMixin,
+class CuartelCreateView(LoginRequiredMixin, AdministradorPermisoMixin,
                         SuccessMessageMixin, CreateView):
     model = Cuartel
     form_class = CuartelForm
@@ -225,7 +252,7 @@ class CuartelCreateView(LoginRequiredMixin, PermissionRequiredMixin,
         return initial
 
 
-class CuartelUpdateView(LoginRequiredMixin, PermissionRequiredMixin,
+class CuartelUpdateView(LoginRequiredMixin, AdministradorPermisoMixin,
                         SuccessMessageMixin, UpdateView):
     model = Cuartel
     form_class = CuartelForm
@@ -236,7 +263,7 @@ class CuartelUpdateView(LoginRequiredMixin, PermissionRequiredMixin,
     extra_context = {"titulo": "Editar cuartel"}
 
 
-class CuartelDeleteView(LoginRequiredMixin, PermissionRequiredMixin,
+class CuartelDeleteView(LoginRequiredMixin, AdministradorPermisoMixin,
                         AvisoAlertaMixin, DeleteView):
     model = Cuartel
     permission_required = "gestor.delete_cuartel"
@@ -245,7 +272,7 @@ class CuartelDeleteView(LoginRequiredMixin, PermissionRequiredMixin,
     success_message = "El cuartel se eliminó."
 
 
-class HuertoCreateView(LoginRequiredMixin, PermissionRequiredMixin,
+class HuertoCreateView(LoginRequiredMixin, AdministradorPermisoMixin,
                        SuccessMessageMixin, CreateView):
     model = Huerto
     form_class = HuertoForm
@@ -262,7 +289,7 @@ class HuertoCreateView(LoginRequiredMixin, PermissionRequiredMixin,
         return initial
 
 
-class HuertoUpdateView(LoginRequiredMixin, PermissionRequiredMixin,
+class HuertoUpdateView(LoginRequiredMixin, AdministradorPermisoMixin,
                        SuccessMessageMixin, UpdateView):
     model = Huerto
     form_class = HuertoForm
@@ -273,13 +300,154 @@ class HuertoUpdateView(LoginRequiredMixin, PermissionRequiredMixin,
     extra_context = {"titulo": "Editar huerto"}
 
 
-class HuertoDeleteView(LoginRequiredMixin, PermissionRequiredMixin,
+class HuertoDeleteView(LoginRequiredMixin, AdministradorPermisoMixin,
                        AvisoAlertaMixin, DeleteView):
     model = Huerto
     permission_required = "gestor.delete_huerto"
     template_name = "confirm_delete.html"
     success_url = reverse_lazy("predio_list")
     success_message = "El huerto se eliminó."
+
+
+class CuadrillaListView(LoginRequiredMixin, AdministradorPermisoMixin, ListView):
+    model = Cuadrilla
+    permission_required = "gestor.view_cuadrilla"
+    template_name = "cuadrilla_list.html"
+    queryset = Cuadrilla.objects.select_related("jefe__user").prefetch_related(
+        "colleras"
+    )
+
+
+class CuadrillaCreateView(LoginRequiredMixin, AdministradorPermisoMixin,
+                          SuccessMessageMixin, CreateView):
+    model = Cuadrilla
+    form_class = CuadrillaForm
+    permission_required = "gestor.add_cuadrilla"
+    template_name = "form.html"
+    success_url = reverse_lazy("cuadrilla_list")
+    success_message = "La cuadrilla se creó correctamente."
+    extra_context = {"titulo": "Nueva cuadrilla"}
+
+
+class CuadrillaUpdateView(LoginRequiredMixin, AdministradorPermisoMixin,
+                          SuccessMessageMixin, UpdateView):
+    model = Cuadrilla
+    form_class = CuadrillaForm
+    permission_required = "gestor.change_cuadrilla"
+    template_name = "form.html"
+    success_url = reverse_lazy("cuadrilla_list")
+    success_message = "La cuadrilla se actualizó correctamente."
+    extra_context = {"titulo": "Editar cuadrilla"}
+
+
+class CuadrillaDeleteView(LoginRequiredMixin, AdministradorPermisoMixin,
+                          AvisoAlertaMixin, DeleteView):
+    model = Cuadrilla
+    permission_required = "gestor.delete_cuadrilla"
+    template_name = "confirm_delete.html"
+    success_url = reverse_lazy("cuadrilla_list")
+    success_message = "La cuadrilla se eliminó."
+
+
+class ColleraListView(LoginRequiredMixin, AdministradorPermisoMixin, ListView):
+    model = Collera
+    permission_required = "gestor.view_collera"
+    template_name = "collera_list.html"
+    queryset = Collera.objects.select_related(
+        "cuadrilla",
+        "trabajador_1__user",
+        "trabajador_2__user",
+    )
+
+
+class ColleraCreateView(LoginRequiredMixin, AdministradorPermisoMixin,
+                        SuccessMessageMixin, CreateView):
+    model = Collera
+    form_class = ColleraForm
+    permission_required = "gestor.add_collera"
+    template_name = "form.html"
+    success_url = reverse_lazy("collera_list")
+    success_message = "La collera se creó correctamente."
+    extra_context = {"titulo": "Nueva collera"}
+
+
+class ColleraUpdateView(LoginRequiredMixin, AdministradorPermisoMixin,
+                        SuccessMessageMixin, UpdateView):
+    model = Collera
+    form_class = ColleraForm
+    permission_required = "gestor.change_collera"
+    template_name = "form.html"
+    success_url = reverse_lazy("collera_list")
+    success_message = "La collera se actualizó correctamente."
+    extra_context = {"titulo": "Editar collera"}
+
+
+class ColleraDeleteView(LoginRequiredMixin, AdministradorPermisoMixin,
+                        AvisoAlertaMixin, DeleteView):
+    model = Collera
+    permission_required = "gestor.delete_collera"
+    template_name = "confirm_delete.html"
+    success_url = reverse_lazy("collera_list")
+    success_message = "La collera se eliminó."
+
+
+class LaborListView(LoginRequiredMixin, AdministradorPermisoMixin, ListView):
+    model = Labor
+    permission_required = "gestor.view_labor"
+    template_name = "labor_list.html"
+
+
+class LaborCreateView(LoginRequiredMixin, AdministradorPermisoMixin,
+                      SuccessMessageMixin, CreateView):
+    model = Labor
+    form_class = LaborForm
+    permission_required = "gestor.add_labor"
+    template_name = "form.html"
+    success_url = reverse_lazy("labor_list")
+    success_message = "La labor se creó correctamente."
+    extra_context = {"titulo": "Nueva labor"}
+
+
+class LaborUpdateView(LoginRequiredMixin, AdministradorPermisoMixin,
+                      SuccessMessageMixin, UpdateView):
+    model = Labor
+    form_class = LaborForm
+    permission_required = "gestor.change_labor"
+    template_name = "form.html"
+    success_url = reverse_lazy("labor_list")
+    success_message = "La labor se actualizó correctamente."
+    extra_context = {"titulo": "Editar labor"}
+
+
+class LaborDeleteView(LoginRequiredMixin, AdministradorPermisoMixin,
+                      AvisoAlertaMixin, DeleteView):
+    model = Labor
+    permission_required = "gestor.delete_labor"
+    template_name = "confirm_delete.html"
+    success_url = reverse_lazy("labor_list")
+    success_message = "La labor se eliminó."
+
+
+class PersonalAgricolaListView(LoginRequiredMixin, AdministradorPermisoMixin,
+                               TemplateView):
+    permission_required = "auth.view_user"
+    template_name = "personal_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["jefes"] = JCuadrilla.objects.select_related("user").all()
+        context["trabajadores"] = Trabajador.objects.select_related("user").all()
+        return context
+
+
+class PersonalAgricolaCreateView(LoginRequiredMixin, AdministradorPermisoMixin,
+                                 SuccessMessageMixin, CreateView):
+    form_class = PersonalAgricolaForm
+    permission_required = "auth.add_user"
+    template_name = "form.html"
+    success_url = reverse_lazy("personal_list")
+    success_message = "La cuenta y el perfil agrícola se crearon correctamente."
+    extra_context = {"titulo": "Agregar personal agrícola"}
 
 
 def jornadas_visibles_para(usuario):
@@ -303,7 +471,7 @@ def jornadas_visibles_para(usuario):
     return queryset.none()
 
 
-class RegistroJornadaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class RegistroJornadaListView(LoginRequiredMixin, AdministradorPermisoMixin, ListView):
     model = RegistroJornada
     permission_required = "gestor.view_registrojornada"
     paginate_by = 15
@@ -320,7 +488,7 @@ class RegistroJornadaListView(LoginRequiredMixin, PermissionRequiredMixin, ListV
         return context
 
 
-class RegistroJornadaCreateView(LoginRequiredMixin, PermissionRequiredMixin,
+class RegistroJornadaCreateView(LoginRequiredMixin, AdministradorPermisoMixin,
                                 SuccessMessageMixin, CreateView):
     model = RegistroJornada
     form_class = RegistroJornadaForm

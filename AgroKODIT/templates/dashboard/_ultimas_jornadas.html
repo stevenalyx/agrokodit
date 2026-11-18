@@ -5,7 +5,7 @@
         <p class="metric-label mb-1">Actividad reciente</p>
         <h2 id="jornadas-recientes" class="h4 mb-0">Jornadas agrícolas</h2>
       </div>
-      {% if perms.gestor.view_registrojornada %}
+      {% if es_administrador or perms.gestor.view_registrojornada %}
       <a class="btn btn-sm btn-outline-primary" href="{% url 'jornada_list' %}">Ver todas</a>
       {% endif %}
     </div>

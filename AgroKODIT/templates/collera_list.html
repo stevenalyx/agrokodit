@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Colleras{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">AgroKODIT · Equipos</p>
+    <h1 class="page-title">Colleras</h1>
+    <p class="page-description">Cada collera está formada por exactamente dos trabajadores de una cuadrilla.</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-outline-primary" href="{% url 'cuadrilla_list' %}">Ver cuadrillas</a>
+    {% if es_administrador or perms.gestor.add_collera %}
+    <a class="btn btn-primary" href="{% url 'collera_create' %}">Nueva collera</a>
+    {% endif %}
+  </div>
+</header>
+
+{% if object_list %}
+<div class="row g-3">
+  {% for collera in object_list %}
+  <div class="col-12 col-md-6 col-xl-4">
+    <article class="card roster-card h-100">
+      <div class="card-body">
+        <p class="eyebrow mb-2">{{ collera.cuadrilla.nombre }}</p>
+        <h2 class="h5 mb-3">Pareja de trabajo</h2>
+        <ul class="pair-list">
+          <li><span class="pair-index">01</span><span>{{ collera.trabajador_1 }}</span></li>
+          <li><span class="pair-index">02</span><span>{{ collera.trabajador_2 }}</span></li>
+        </ul>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          {% if es_administrador or perms.gestor.change_collera %}
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'collera_update' collera.pk %}">Editar</a>
+          {% endif %}
+          {% if es_administrador or perms.gestor.delete_collera %}
+          <a class="btn btn-sm btn-outline-danger" href="{% url 'collera_delete' collera.pk %}">Eliminar</a>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+  </div>
+  {% endfor %}
+</div>
+{% include "_paginacion.html" %}
+{% else %}
+<div class="empty-state">
+  <span class="empty-state-mark" aria-hidden="true">02</span>
+  <h2 class="h4">Todavía no hay colleras</h2>
+  <p>Primero registra trabajadores y una cuadrilla; luego podrás formar la pareja.</p>
+  {% if es_administrador or perms.gestor.add_collera %}
+  <a class="btn btn-primary" href="{% url 'collera_create' %}">Crear collera</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

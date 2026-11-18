@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Cuadrillas{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">AgroKODIT · Equipos</p>
+    <h1 class="page-title">Cuadrillas</h1>
+    <p class="page-description">Organiza equipos y asigna un jefe responsable.</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-outline-primary" href="{% url 'collera_list' %}">Ver colleras</a>
+    {% if es_administrador or perms.gestor.add_cuadrilla %}
+    <a class="btn btn-primary" href="{% url 'cuadrilla_create' %}">Nueva cuadrilla</a>
+    {% endif %}
+  </div>
+</header>
+
+{% if object_list %}
+<div class="card dashboard-table">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <caption class="visually-hidden">Cuadrillas registradas</caption>
+      <thead>
+        <tr><th scope="col">Cuadrilla</th><th scope="col">Jefe</th><th scope="col">Colleras</th><th scope="col">Acciones</th></tr>
+      </thead>
+      <tbody>
+        {% for cuadrilla in object_list %}
+        <tr>
+          <th scope="row">{{ cuadrilla.nombre }}</th>
+          <td>{{ cuadrilla.jefe }}</td>
+          <td>{{ cuadrilla.colleras.count }}</td>
+          <td>
+            <div class="d-flex flex-wrap gap-2">
+              {% if es_administrador or perms.gestor.change_cuadrilla %}
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'cuadrilla_update' cuadrilla.pk %}">Editar</a>
+              {% endif %}
+              {% if es_administrador or perms.gestor.delete_cuadrilla %}
+              <a class="btn btn-sm btn-outline-danger" href="{% url 'cuadrilla_delete' cuadrilla.pk %}">Eliminar</a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">
+  <span class="empty-state-mark" aria-hidden="true">01</span>
+  <h2 class="h4">Todavía no hay cuadrillas</h2>
+  <p>Crea una cuadrilla para comenzar a organizar las colleras.</p>
+  {% if es_administrador or perms.gestor.add_cuadrilla %}
+  <a class="btn btn-primary" href="{% url 'cuadrilla_create' %}">Crear cuadrilla</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

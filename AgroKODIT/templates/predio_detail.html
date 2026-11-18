@@ -22,7 +22,7 @@
   <div class="card-body">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
       <h2 id="huertos" class="h4 mb-0">Huertos y cuarteles</h2>
-      {% if perms.gestor.add_huerto %}
+      {% if es_administrador or perms.gestor.add_huerto %}
       <a class="btn btn-primary" href="{% url 'huerto_create' %}?predio={{ object.pk }}">Nuevo huerto</a>
       {% endif %}
     </div>
@@ -35,13 +35,13 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
           <h3 id="huerto-{{ huerto.pk }}" class="h5 mb-0">{{ huerto.nombre }}</h3>
           <span class="d-flex gap-2">
-            {% if perms.gestor.add_cuartel %}
+            {% if es_administrador or perms.gestor.add_cuartel %}
             <a class="btn btn-sm btn-outline-primary" href="{% url 'cuartel_create' %}?huerto={{ huerto.pk }}">Nuevo cuartel</a>
             {% endif %}
-            {% if perms.gestor.change_huerto %}
+            {% if es_administrador or perms.gestor.change_huerto %}
             <a class="btn btn-sm btn-outline-secondary" href="{% url 'huerto_update' huerto.pk %}">Editar huerto</a>
             {% endif %}
-            {% if perms.gestor.delete_huerto %}
+            {% if es_administrador or perms.gestor.delete_huerto %}
             <a class="btn btn-sm btn-outline-danger" href="{% url 'huerto_delete' huerto.pk %}">Eliminar huerto</a>
             {% endif %}
           </span>
@@ -52,10 +52,10 @@
           <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
             <span>{{ c.nombre }}{% if c.superficie_hectareas %} · {{ c.superficie_hectareas|floatformat:2 }} ha{% endif %}</span>
             <span class="d-flex gap-2">
-              {% if perms.gestor.change_cuartel %}
+              {% if es_administrador or perms.gestor.change_cuartel %}
               <a class="btn btn-sm btn-outline-primary" href="{% url 'cuartel_update' c.pk %}">Editar<span class="visually-hidden"> {{ c }}</span></a>
               {% endif %}
-              {% if perms.gestor.delete_cuartel %}
+              {% if es_administrador or perms.gestor.delete_cuartel %}
               <a class="btn btn-sm btn-outline-danger" href="{% url 'cuartel_delete' c.pk %}">Eliminar<span class="visually-hidden"> {{ c }}</span></a>
               {% endif %}
             </span>

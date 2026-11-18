@@ -180,6 +180,61 @@ class AgroKODITDashboardTests(TestCase):
         self.assertContains(response, "Kilos producidos")
         self.assertContains(response, "Exportación")
 
+    def test_collera_can_be_created_from_the_site(self):
+        self.client.force_login(self.admin)
+        worker_one = Trabajador.objects.get(user__username="trabajador")
+        worker_two = Trabajador.objects.get(user__username="compañero")
+        response = self.client.post(
+            reverse("collera_create"),
+            {
+                "cuadrilla": self.team.pk,
+                "trabajador_1": worker_one.pk,
+                "trabajador_2": worker_two.pk,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Collera.objects.filter(cuadrilla=self.team).count(), 2)
+
+    def test_management_pages_render_for_administrator_role(self):
+        admin_group = Group.objects.create(name="Administrador")
+        role_admin = User.objects.create_user(username="admin-rol")
+        role_admin.groups.add(admin_group)
+        self.client.force_login(role_admin)
+
+        for page_name in (
+            "cuadrilla_list",
+            "collera_list",
+            "labor_list",
+            "personal_list",
+            "personal_create",
+        ):
+            with self.subTest(page=page_name):
+                response = self.client.get(reverse(page_name))
+                self.assertEqual(response.status_code, 200)
+
+        self.assertContains(self.client.get(reverse("collera_list")), "Nueva collera")
+
+    def test_personal_can_be_created_with_its_agricultural_profile(self):
+        self.client.force_login(self.admin)
+        response = self.client.post(
+            reverse("personal_create"),
+            {
+                "username": "nuevo-trabajador",
+                "first_name": "Nuevo",
+                "last_name": "Trabajador",
+                "email": "nuevo@example.com",
+                "rol": "Trabajador",
+                "password1": "StrongPass!2026",
+                "password2": "StrongPass!2026",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        new_user = User.objects.get(username="nuevo-trabajador")
+        self.assertTrue(Trabajador.objects.filter(user=new_user).exists())
+        self.assertTrue(new_user.groups.filter(name="Trabajador").exists())
+
     def test_jefe_can_only_validate_journeys_from_assigned_teams(self):
         self.client.force_login(self.boss)
         list_response = self.client.get(reverse("jornada_list"))

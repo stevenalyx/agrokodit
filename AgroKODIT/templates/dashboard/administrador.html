@@ -14,24 +14,53 @@
 <section class="mt-4" aria-labelledby="gestion">
   <h2 id="gestion" class="h4 mb-3">Gestión del sistema</h2>
   <div class="row g-3">
-    {% if perms.gestor.view_predio %}
+    {% if es_administrador or perms.gestor.view_predio %}
     <div class="col-12 col-md-6 col-xl-4">
       <article class="card h-100 dashboard-action">
         <div class="card-body">
+          <p class="eyebrow">01 · Territorio</p>
           <h3 class="h5">Predios y huertos</h3>
-          <p class="text-body-secondary">Administra predios, huertos y cuarteles.</p>
+          <p class="text-body-secondary">Administra predios, huertos y cuarteles desde sus fichas.</p>
           <a href="{% url 'predio_list' %}" class="btn btn-primary">Ver predios</a>
         </div>
       </article>
     </div>
     {% endif %}
-    {% if user.is_staff and perms.auth.view_user %}
+    {% if es_administrador or perms.gestor.view_cuadrilla %}
     <div class="col-12 col-md-6 col-xl-4">
       <article class="card h-100 dashboard-action">
         <div class="card-body">
-          <h3 class="h5">Usuarios y cuadrillas</h3>
-          <p class="text-body-secondary">Administra trabajadores, jefaturas y equipos.</p>
-          <a href="{% url 'admin:index' %}" class="btn btn-outline-primary">Abrir administración</a>
+          <p class="eyebrow">02 · Equipos</p>
+          <h3 class="h5">Cuadrillas y colleras</h3>
+          <p class="text-body-secondary">Asigna jefes y forma parejas de dos trabajadores.</p>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'cuadrilla_list' %}" class="btn btn-primary">Ver cuadrillas</a>
+            <a href="{% url 'collera_list' %}" class="btn btn-outline-primary">Ver colleras</a>
+          </div>
+        </div>
+      </article>
+    </div>
+    {% endif %}
+    {% if es_administrador or perms.gestor.view_labor %}
+    <div class="col-12 col-md-6 col-xl-4">
+      <article class="card h-100 dashboard-action">
+        <div class="card-body">
+          <p class="eyebrow">03 · Catálogo</p>
+          <h3 class="h5">Labores agrícolas</h3>
+          <p class="text-body-secondary">Configura las labores disponibles para las jornadas.</p>
+          <a href="{% url 'labor_list' %}" class="btn btn-outline-primary">Administrar labores</a>
+        </div>
+      </article>
+    </div>
+    {% endif %}
+    {% if es_administrador or perms.auth.view_user %}
+    <div class="col-12 col-md-6 col-xl-4">
+      <article class="card h-100 dashboard-action">
+        <div class="card-body">
+          <p class="eyebrow">04 · Equipo humano</p>
+          <h3 class="h5">Personal agrícola</h3>
+          <p class="text-body-secondary">Crea cuentas con su perfil de trabajador o jefe.</p>
+          <a href="{% url 'personal_list' %}" class="btn btn-outline-primary">Administrar personal</a>
         </div>
       </article>
     </div>
