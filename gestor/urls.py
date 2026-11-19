@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # inicio
+    # inicio titulo
     path("", views.DashboardView.as_view(), name="dashboard"),
 
     # predios
@@ -12,12 +12,12 @@ urlpatterns = [
     path("predios/<int:pk>/editar/", views.PredioUpdateView.as_view(), name="predio_update"),
     path("predios/<int:pk>/eliminar/", views.PredioDeleteView.as_view(), name="predio_delete"),
 
-    # huertos
+    # lista de los huertos
     path("huertos/nuevo/", views.HuertoCreateView.as_view(), name="huerto_create"),
     path("huertos/<int:pk>/editar/", views.HuertoUpdateView.as_view(), name="huerto_update"),
     path("huertos/<int:pk>/eliminar/", views.HuertoDeleteView.as_view(), name="huerto_delete"),
 
-    # cuarteles
+    # lista de los cuarteles
     path("cuarteles/nuevo/", views.CuartelCreateView.as_view(), name="cuartel_create"),
     path("cuarteles/<int:pk>/editar/", views.CuartelUpdateView.as_view(), name="cuartel_update"),
     path("cuarteles/<int:pk>/eliminar/", views.CuartelDeleteView.as_view(), name="cuartel_delete"),

@@ -3,7 +3,7 @@
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django-3.2-092E20?logo=django&logoColor=white)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?logo=bootstrap&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-2.3.0-003B57?logo=mysql&logoColor=red)
 
 Sistema web para gestionar predios, huertos, cuarteles, cuadrillas, colleras y jornadas de producción agrícola. Está desarrollado en Django como parte del ramo **Proyecto Integrado**, con **KODIT** como mandante.
 
