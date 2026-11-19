@@ -68,8 +68,8 @@ class ColleraAdmin(admin.ModelAdmin):
 
 @admin.register(Labor)
 class LaborAdmin(admin.ModelAdmin):
-    list_display = ("nombre", "activa")
-    list_filter = ("activa",)
+    list_display = ("nombre", "estado")
+    list_filter = ("estado",)
     search_fields = ("nombre",)
 
 

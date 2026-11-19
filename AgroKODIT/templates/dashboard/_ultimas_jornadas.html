@@ -37,9 +37,9 @@
             <td>{{ jornada.get_calidad_display }}</td>
             <td>
               {% if jornada.validado %}
-              <span class="badge text-bg-success">Validada</span>
+              <span class="status-badge status-badge--active">Validada</span>
               {% else %}
-              <span class="badge text-bg-warning">Pendiente</span>
+              <span class="status-badge status-badge--pending">Pendiente</span>
               {% endif %}
             </td>
           </tr>

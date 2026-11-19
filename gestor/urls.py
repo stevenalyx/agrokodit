@@ -46,6 +46,11 @@ urlpatterns = [
         views.RegistroJornadaValidarView.as_view(),
         name="jornada_validar",
     ),
+    path(
+        "jornadas/<int:pk>/asistencia/",
+        views.RegistroJornadaAsistenciaView.as_view(),
+        name="jornada_asistencia",
+    ),
 
     # roles
     path("roles/", views.RolListView.as_view(), name="rol_list"),

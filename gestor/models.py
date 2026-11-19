@@ -143,9 +143,18 @@ class Collera(models.Model):
 
 
 class Labor(models.Model):
+    class Estado(models.TextChoices):
+        ACTIVA = "activa", "Activa"
+        INACTIVA = "inactiva", "Inactiva"
+        DETENIDA = "detenida", "Detenida"
+
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.TextField(blank=True)
-    activa = models.BooleanField(default=True)
+    estado = models.CharField(
+        max_length=10,
+        choices=Estado.choices,
+        default=Estado.ACTIVA,
+    )
 
     class Meta:
         ordering = ["nombre"]

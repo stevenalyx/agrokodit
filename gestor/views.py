@@ -482,9 +482,14 @@ class RegistroJornadaListView(LoginRequiredMixin, AdministradorPermisoMixin, Lis
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["es_jefe_cuadrilla"] = self.request.user.groups.filter(
-            name="Jefe de cuadrilla"
-        ).exists()
+        usuario = self.request.user
+        es_jefe = usuario.groups.filter(name="Jefe de cuadrilla").exists()
+        context["es_jefe_cuadrilla"] = es_jefe
+        context["puede_editar_asistencia"] = (
+            usuario.is_superuser
+            or usuario.groups.filter(name="Administrador").exists()
+            or (es_jefe and usuario.has_perm("gestor.change_registrojornada"))
+        )
         return context
 
 
@@ -502,6 +507,24 @@ class RegistroJornadaCreateView(LoginRequiredMixin, AdministradorPermisoMixin,
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
         return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = context.get("form")
+        if form:
+            colleras = form.fields["collera"].queryset.select_related(
+                "trabajador_1__user", "trabajador_2__user"
+            )
+            context["colleras_asistencia"] = {
+                str(collera.pk): {
+                    "trabajador_1": str(collera.trabajador_1),
+                    "trabajador_2": str(collera.trabajador_2),
+                }
+                for collera in colleras
+            }
+        else:
+            context["colleras_asistencia"] = {}
+        return context
 
 
 class RegistroJornadaValidarView(LoginRequiredMixin, PermissionRequiredMixin, View):
@@ -523,6 +546,42 @@ class RegistroJornadaValidarView(LoginRequiredMixin, PermissionRequiredMixin, Vi
                 update_fields=["validado", "validado_por", "fecha_validacion"]
             )
             messages.success(request, "La jornada fue validada.")
+        return redirect("jornada_list")
+
+
+class RegistroJornadaAsistenciaView(
+    LoginRequiredMixin, AdministradorPermisoMixin, View
+):
+    permission_required = "gestor.change_registrojornada"
+    raise_exception = True
+
+    def post(self, request, pk):
+        usuario = request.user
+        es_administrador = usuario.is_superuser or usuario.groups.filter(
+            name="Administrador"
+        ).exists()
+        jefe = JCuadrilla.objects.filter(user=usuario).first()
+        if not es_administrador and not jefe:
+            raise PermissionDenied
+
+        jornada = get_object_or_404(jornadas_visibles_para(usuario), pk=pk)
+        if jornada.validado:
+            messages.error(
+                request,
+                "La asistencia no se puede modificar porque la jornada ya fue validada.",
+            )
+            return redirect("jornada_list")
+
+        jornada.asistencia_trabajador_1 = (
+            request.POST.get("asistencia_trabajador_1") == "on"
+        )
+        jornada.asistencia_trabajador_2 = (
+            request.POST.get("asistencia_trabajador_2") == "on"
+        )
+        jornada.save(
+            update_fields=["asistencia_trabajador_1", "asistencia_trabajador_2"]
+        )
+        messages.success(request, "La asistencia de la jornada se actualizó.")
         return redirect("jornada_list")
 
 # crear roles de administrador, jefe cuadrilla y trabajador

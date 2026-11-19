@@ -40,10 +40,29 @@
           <td>{{ jornada.cuartel.huerto.predio.nombre }} · {{ jornada.cuartel.huerto.nombre }} · {{ jornada.cuartel.nombre }}</td>
           <td>{{ jornada.labor }}</td>
           <td>
-            <span class="fw-semibold">{{ jornada.collera.trabajador_1 }}</span>:
-            {% if jornada.asistencia_trabajador_1 %}Presente{% else %}Ausente{% endif %}<br>
-            <span class="fw-semibold">{{ jornada.collera.trabajador_2 }}</span>:
-            {% if jornada.asistencia_trabajador_2 %}Presente{% else %}Ausente{% endif %}
+            {% if not jornada.validado and puede_editar_asistencia %}
+            <form method="post" action="{% url 'jornada_asistencia' jornada.pk %}" class="attendance-form">
+              {% csrf_token %}
+              <label class="form-check attendance-choice">
+                <input class="form-check-input" type="checkbox" name="asistencia_trabajador_1"
+                       {% if jornada.asistencia_trabajador_1 %}checked{% endif %}>
+                <span>{{ jornada.collera.trabajador_1 }} <span class="visually-hidden">presente</span></span>
+              </label>
+              <label class="form-check attendance-choice">
+                <input class="form-check-input" type="checkbox" name="asistencia_trabajador_2"
+                       {% if jornada.asistencia_trabajador_2 %}checked{% endif %}>
+                <span>{{ jornada.collera.trabajador_2 }} <span class="visually-hidden">presente</span></span>
+              </label>
+              <button type="submit" class="btn btn-sm btn-outline-primary attendance-save">Guardar asistencia</button>
+            </form>
+            {% else %}
+            <span class="attendance-status {% if jornada.asistencia_trabajador_1 %}is-present{% else %}is-absent{% endif %}">
+              {{ jornada.collera.trabajador_1 }} · {% if jornada.asistencia_trabajador_1 %}Presente{% else %}Ausente{% endif %}
+            </span>
+            <span class="attendance-status {% if jornada.asistencia_trabajador_2 %}is-present{% else %}is-absent{% endif %}">
+              {{ jornada.collera.trabajador_2 }} · {% if jornada.asistencia_trabajador_2 %}Presente{% else %}Ausente{% endif %}
+            </span>
+            {% endif %}
           </td>
           <td class="text-end">{{ jornada.kilos_producidos|floatformat:2 }}</td>
           <td class="text-end">{{ jornada.kilos_perdida|floatformat:2 }}</td>
@@ -51,10 +70,10 @@
           <td>{{ jornada.observaciones|default:"—"|truncatechars:80 }}</td>
           <td>
             {% if jornada.validado %}
-            <span class="badge text-bg-success">Validada</span>
+            <span class="status-badge status-badge--active">Validada</span>
             <span class="d-block small text-body-secondary">{{ jornada.validado_por }}</span>
             {% else %}
-            <span class="badge text-bg-warning">Pendiente</span>
+            <span class="status-badge status-badge--pending">Pendiente</span>
             {% if es_jefe_cuadrilla and perms.gestor.change_registrojornada %}
             <form method="post" action="{% url 'jornada_validar' jornada.pk %}" class="mt-2">
               {% csrf_token %}

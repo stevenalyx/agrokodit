@@ -22,7 +22,12 @@ class BootstrapAccesibleMixin:
         super().__init__(*args, **kwargs)
         for name, field in self.fields.items():
             widget = field.widget
-            clase = "form-select" if isinstance(widget, forms.Select) else "form-control"
+            if isinstance(widget, forms.Select):
+                clase = "form-select"
+            elif isinstance(widget, forms.CheckboxInput):
+                clase = "form-check-input"
+            else:
+                clase = "form-control"
             actuales = widget.attrs.get("class", "")
 
             ids = []
@@ -43,8 +48,8 @@ class BootstrapAccesibleMixin:
 class LoginForm(BootstrapAccesibleMixin, AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["username"].label = "Ingresa tú nombre de usuario"
-        self.fields["password"].label = "Ingresa tú contraseña"
+        self.fields["username"].label = "Ingresa tu nombre de usuario"
+        self.fields["password"].label = "Ingresa tu contraseña"
 
 
 class PredioForm(BootstrapAccesibleMixin, forms.ModelForm):
@@ -103,11 +108,11 @@ class ColleraForm(BootstrapAccesibleMixin, forms.ModelForm):
 class LaborForm(BootstrapAccesibleMixin, forms.ModelForm):
     class Meta:
         model = Labor
-        fields = ["nombre", "descripcion", "activa"]
+        fields = ["nombre", "descripcion", "estado"]
         labels = {
             "nombre": "Nombre de la labor",
             "descripcion": "Descripción",
-            "activa": "Labor activa",
+            "estado": "Estado",
         }
         widgets = {
             "descripcion": forms.Textarea(attrs={"rows": 3}),
@@ -209,4 +214,6 @@ class RegistroJornadaForm(BootstrapAccesibleMixin, forms.ModelForm):
                 self.fields["collera"].queryset = Collera.objects.filter(
                     cuadrilla__jefe=jefe
                 )
-        self.fields["labor"].queryset = Labor.objects.filter(activa=True)
+        self.fields["labor"].queryset = Labor.objects.filter(
+            estado=Labor.Estado.ACTIVA
+        )

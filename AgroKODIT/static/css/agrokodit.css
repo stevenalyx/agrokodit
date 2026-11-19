@@ -240,7 +240,7 @@ a { text-underline-offset: .2em; }
 .pair-list li { display: flex; align-items: center; gap: .75rem; padding: .8rem; background: var(--surface-raised); border-radius: .7rem; }
 .pair-index, .profile-mark { display: grid; flex: 0 0 auto; place-items: center; width: 2.2rem; height: 2.2rem; color: #e4c4fa; background: #2a1a34; border: 1px solid #513565; border-radius: 50%; font-size: .75rem; font-weight: 800; }
 .empty-inline { margin: 0; padding: 1.25rem; color: var(--text-muted) !important; background: var(--surface-raised); border-radius: .75rem; }
-.table { --bs-table-color: var(--text); --bs-table-bg: transparent; --bs-table-border-color: var(--surface-border); --bs-table-striped-bg: #151519; --bs-table-hover-bg: #1b1820; --bs-table-hover-color: #fff; margin-bottom: 0; }
+.table { --bs-table-color: var(--text); --bs-table-bg: transparent; --bs-table-border-color: var(--surface-border); --bs-table-striped-color: var(--text); --bs-table-striped-bg: #151519; --bs-table-hover-bg: #1b1820; --bs-table-hover-color: #fff; margin-bottom: 0; }
 .table thead th { color: #aaa4b0; font-size: .75rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
 .table > :not(caption) > * > * { padding: .9rem 1rem; }
 
@@ -258,12 +258,18 @@ a { text-underline-offset: .2em; }
   border-color: var(--agro);
   box-shadow: 0 0 0 .22rem rgb(168 50 245 / 17%);
 }
-.form-control[type="checkbox"] {
+.form-control[type="checkbox"], .form-check-input {
   width: 1.15rem;
   height: 1.15rem;
   padding: 0;
+  border-color: #716879;
+  border-radius: .25rem;
+  background-color: #101013;
   accent-color: var(--agro);
 }
+.form-check-input:checked { background-color: var(--agro); border-color: var(--agro); }
+.form-check-row { display: flex; align-items: center; gap: .6rem; margin-bottom: 1rem; }
+.form-check-row .form-check-input { flex: 0 0 auto; margin: 0; }
 .form-select option { color: var(--text); background: var(--surface); }
 .form-label, label { color: #e5e1e8; font-weight: 600; }
 .form-text, .invalid-feedback, .valid-feedback { color: var(--text-muted); }
@@ -272,6 +278,33 @@ a { text-underline-offset: .2em; }
 .alert-danger, .alert-error { border-color: #66313b; }
 .alert-warning { border-color: #66502a; }
 .badge { font-weight: 700; }
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: .32rem .62rem;
+  color: var(--status-ink);
+  background: var(--status-bg);
+  border: 1px solid var(--status-border);
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 750;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.status-badge--active { --status-bg: #123d2c; --status-ink: #a5f0c5; --status-border: #286b4b; }
+.status-badge--inactive { --status-bg: #29282e; --status-ink: #d2ced8; --status-border: #514d57; }
+.status-badge--paused { --status-bg: #3b2d16; --status-ink: #ffda91; --status-border: #795a24; }
+.status-badge--pending { --status-bg: #3b2d16; --status-ink: #ffda91; --status-border: #795a24; }
+.attendance-form { display: grid; justify-items: start; gap: .5rem; min-width: 11rem; }
+.attendance-choice { display: flex; align-items: center; gap: .45rem; margin: 0; color: var(--text); font-size: .86rem; }
+.attendance-choice .form-check-input { flex: 0 0 auto; width: 1.1rem; height: 1.1rem; margin: 0; background-color: #101013; border-color: #716879; }
+.attendance-choice .form-check-input:checked { background-color: var(--agro); border-color: var(--agro); }
+.attendance-choice .form-check-input:focus { border-color: var(--agro-light); box-shadow: 0 0 0 .2rem rgb(168 50 245 / 22%); }
+.attendance-save { margin-top: .15rem; }
+.attendance-status { display: block; width: fit-content; margin-bottom: .28rem; padding: .2rem .48rem; border-radius: .45rem; font-size: .82rem; font-weight: 650; }
+.attendance-status.is-present { color: #a5f0c5; background: #123d2c; }
+.attendance-status.is-absent { color: #ffb8c0; background: #421f27; }
 .pagination { gap: .3rem; }
 .page-link { color: #d7d1dc; background: var(--surface); border: 1px solid var(--surface-border); border-radius: .55rem !important; }
 .page-link:hover { color: #fff; background: var(--surface-raised); border-color: #51475a; }

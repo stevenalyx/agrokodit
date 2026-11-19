@@ -26,7 +26,15 @@
         <tr>
           <th scope="row">{{ labor.nombre }}</th>
           <td>{{ labor.descripcion|default:"—" }}</td>
-          <td>{% if labor.activa %}<span class="badge text-bg-success">Activa</span>{% else %}<span class="badge text-bg-secondary">Inactiva</span>{% endif %}</td>
+          <td>
+            {% if labor.estado == "activa" %}
+              <span class="status-badge status-badge--active">Activa</span>
+            {% elif labor.estado == "detenida" %}
+              <span class="status-badge status-badge--paused">Detenida</span>
+            {% else %}
+              <span class="status-badge status-badge--inactive">Inactiva</span>
+            {% endif %}
+          </td>
           <td>
             <div class="d-flex flex-wrap gap-2">
               {% if es_administrador or perms.gestor.change_labor %}
