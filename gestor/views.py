@@ -48,7 +48,7 @@ class UsuarioPasswordChangeSelfView(LoginRequiredMixin, PasswordChangeView):
         return super().form_valid(form)
 
 class AvisoAlertaMixin:
-    # muestra el aviso de éxito (sucess_message) después de eliminar un registro
+    # muestra el aviso de exito después de eliminar un registro
     success_message = ""
 
     def delete(self, request, *args, **kwargs):

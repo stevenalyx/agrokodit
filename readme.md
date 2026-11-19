@@ -18,7 +18,7 @@ La rúbrica de la asignatura pide, entre otras cosas, un prototipo interactivo, 
 ## Qué se puede hacer hoy
 
 - Iniciar sesión y cerrar sesión.
-- Ver un dashboard con métricas y jornadas recientes, filtradas según el rol.
+- Ver un dashboard con métricas y jornadas recientes, filtradas según el rol y capacidad.
 - Crear, editar, ver y eliminar predios.
 - Organizar predios en huertos y huertos en cuarteles con superficie en hectáreas.
 - Crear desde la interfaz el personal agrícola, las cuadrillas, las colleras de dos personas y el catálogo de labores.
@@ -32,9 +32,9 @@ La rúbrica de la asignatura pide, entre otras cosas, un prototipo interactivo, 
 | --- | --- |
 | Lenguaje | Python 3.11 |
 | Framework | Django 3.2 (vistas basadas en clases) |
-| Base de datos | SQLite (en desarrollo) |
+| Base de datos | MySQL |
 | Interfaz | Plantillas de Django + Bootstrap 5.3 |
-| Autenticación | `django.contrib.auth` | (por modificar)
+| Autenticación | `django.contrib.auth` | 
 
 ## Modelo de datos
 
