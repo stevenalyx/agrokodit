@@ -212,17 +212,8 @@ Cuando existan, se ejecutarán con:
 python manage.py test
 ```
 
-## Próximos pasos
-
-- [ ] Comando de gestión para configurar los grupos y permisos agrícolas por rol.
-- [ ] Pruebas de rendimiento y revisión manual de usabilidad en escritorio y móvil.
-- [ ] Endurecer la configuración (variables de entorno, cookies seguras, `check --deploy`).
-- [ ] Agregar un `requirements.txt`.
-- [ ] Migrar la base de datos a PostgreSQL con Docker.
-- [ ] Documentación de la entrega: carta Gantt con ruta crítica, tablero Kanban, vistas del paradigma 4+1 y topología de red.
-- [ ] Aumentar la seguridad del proyecto
-- [ ] Implementar el sistema en español en algunas secciones
-
 ## Autoría
 
 Proyecto académico desarrollado por [@stevenalyx](https://instagram.com/stevenalyx) 
+
+La copia para uso no autorizado de este proyecto se considera una violación de derechos de autor y puede ser sancionada por la ley.
